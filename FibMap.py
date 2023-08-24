@@ -14,7 +14,7 @@ from src import mapping
 
 
 def main():
-    github_link = "LINK"
+    github_link = "https://github.com/conor-b-abraham/FibMap/"
 
     # Initialize logger
     LOG = io.Logger()
