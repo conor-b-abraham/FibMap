@@ -1,0 +1,18 @@
+# `Fibmap.py calc` input file for Tutorial 1: Creating a FibMap from a PDB
+
+# Input Files
+topology_file                   = top.tpr # The name of the topology file
+trajectory_file                 = traj.xtc # The name(s) for the trajectory file(s)
+
+# Output
+# output_directory                = Using Default (Current Working Directory)
+verbose                         = True # Being Loud
+backup                          = False # Let's not be messy
+saveraw                         = False # We won't need these
+log                             = True # Let's just keep it
+
+# Options
+calctype                        = ALL # For a PDB, the calculations are very fast, so let's do them all
+n_protofilaments                = 2 # 6MST has 2 protofilaments
+omit_layers                     = 2 # If you view the trajectory (or calculate RMSF values) you'll see that the ends of the fibril are delaminating.
+nprocs                          = 1 # Again, the calculations are very fast for a PDB

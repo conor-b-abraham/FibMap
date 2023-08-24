@@ -1,0 +1,192 @@
+
+╔════════════════════════════════════════════════════╗
+║ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ ║
+║ ░░███████╗██╗██████╗░███╗░░░███╗░█████╗░██████╗░░░ ║
+║ ░░██╔════╝██║██╔══██╗████╗░████║██╔══██╗██╔══██╗░░ ║
+║ ░░█████╗░░██║██████╦╝██╔████╔██║███████║██████╔╝░░ ║
+║ ░░██╔══╝░░██║██╔══██╗██║╚██╔╝██║██╔══██║██╔═══╝░░░ ║
+║ ░░██║░░░░░██║██████╦╝██║░╚═╝░██║██║░░██║██║░░░░░░░ ║
+║ ░░╚═╝░░░░░╚═╝╚═════╝░╚═╝░░░░░╚═╝╚═╝░░╚═╝╚═╝░░░░░░░ ║
+║ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ ║
+╚════════════════════════════════════════════════════╝
+Calculates and visualizes key intrafibril interactions within an amyloid fibril.
+
+Created by Conor B. Abraham in the Straub Group at Boston University
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+PARAMETERS:
+    - command: calc
+Input
+    - trajectory_file: prepared.pdb
+    - topology_file: prepared.psf
+    - checkpoint_file: None
+    - hb_processed_file: None
+    - hb_unprocessed_file: None
+    - sb_processed_file: None
+    - sb_unprocessed_file: None
+    - pi_processed_file: None
+    - pi_unprocessed_file: None
+    - map_positions_file: None
+Output
+    - output_directory: .
+    - nosaveraw: True
+    - saveraw: False
+    - verbose: True
+    - nprocs: 1
+    - nobackup: True
+    - output_log: calc_ALL.log
+    - output_cpt: calc_ALL.cpt
+Options
+    - n_protofilaments: 2
+    - omit_layers: 0
+    - calctype: ALL
+    - hbond_distance_cutoff: 3.5
+    - hbond_angle_cutoff: 150.0
+    - saltbridge_selection_mode: AUTO
+    - saltbridge_anion_charge_cutoff: -0.5
+    - saltbridge_cation_charge_cutoff: 0.5
+    - saltbridge_distance_cutoff: 4.0
+    - pistacking_phe_sel: (resname PHE and name CG CD2 CE2 CZ CE1 CD1)
+    - pistacking_tyr_sel: (resname TYR and name CG CD2 CE2 CZ CE1 CD1)
+    - pistacking_his_sel: (resname HSD HSE HSP and name CG CD2 NE2 CE1 ND1)
+    - pistacking_trp_sel: (resname TRP and name CG CD1 NE1 CE2 CD2)
+
+
+
+SEGMENTS TO BE ANALYZED:
+Protofilament 1: P11 P12 P13 P14 P15 P16
+Protofilament 2: P21 P22 P23 P24 P25 P26
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+HYDROGEN BONDS:
+Calculating Hydrogen Bonds
+~ Hydrogen bonds were already calculated and stored in None
+Processing hydrogen bonds
+~ Processed hydrogen bonds saved to processed_hydrogen_bonds.npy
+                                  INTRALAYER                INTERLAYER
+     DONOR     ACCEPTOR     <N H-BONDS>  P(H-BOND)    <N H-BONDS>  P(H-BOND)
+    1-SER2-T  2-ASP33-SC       0.000       0.000         1.000       1.000
+   1-PHE3-BB   1-SER2-BB       0.000       0.000         1.000       1.000
+   1-PHE4-BB   1-PHE3-BB       0.000       0.000         1.000       1.000
+   1-LEU7-BB   1-PHE6-BB       0.000       0.000         1.000       1.000
+   1-GLY8-BB   1-LEU7-BB       0.000       0.000         1.000       1.000
+  1-ALA10-BB   1-GLU9-BB       0.000       0.000         1.000       1.000
+  1-ASP16-BB  1-ARG15-BB       0.000       0.000         0.800       0.800
+  1-TRP18-BB  1-MET17-BB       0.000       0.000         1.000       1.000
+  1-ARG19-SC  1-ASP16-SC       0.000       0.000         1.000       1.000
+  1-ALA20-BB  1-ARG19-BB       0.000       0.000         1.000       1.000
+  1-ARG25-SC  1-ASP23-SC       2.000       1.000         0.000       0.000
+  1-ARG25-SC  1-GLY48-BB       0.000       0.000         1.000       1.000
+  1-ASN28-BB  1-ALA27-BB       0.000       0.000         1.000       1.000
+  1-TYR29-SC  1-GLU26-BB       0.000       0.000         1.000       1.000
+  1-ILE30-BB  1-TYR29-BB       0.000       0.000         1.000       1.000
+  1-GLY31-BB  1-ILE30-BB       0.000       0.000         1.000       1.000
+  1-SER32-BB  1-SER32-SC       0.000       0.000         1.000       1.000
+  1-SER32-SC  1-ILE30-BB       0.833       0.833         0.000       0.000
+  1-ASP33-BB  1-ASP33-SC       0.000       0.000         1.000       1.000
+  1-LYS34-BB  1-ASP33-BB       0.000       0.000         1.000       1.000
+  1-TYR35-BB  1-LYS34-BB       0.000       0.000         1.000       1.000
+  1-HSD37-BB  1-PHE36-BB       0.000       0.000         1.000       1.000
+  1-ASN41-BB  1-ASN41-SC       0.000       0.000         1.000       1.000
+  1-ASN41-SC  1-ALA38-BB       0.000       0.000         1.000       1.000
+  1-ASP43-BB  1-TYR42-BB       0.000       0.000         1.000       1.000
+  1-ALA44-BB  1-ASP43-BB       0.000       0.000         1.000       1.000
+  1-GLY51-BB  1-ASP23-SC       0.000       0.000         1.000       1.000
+  1-VAL52-BB  1-GLY51-BB       0.000       0.000         1.000       1.000
+  1-TRP53-BB  1-VAL52-BB       0.000       0.000         1.000       1.000
+  1-ALA54-BB  1-TRP53-BB       0.000       0.000         1.000       1.000
+   1-ALA55-T  1-ALA54-BB       0.000       0.000         1.000       1.000
+    2-SER2-T  1-ASP33-SC       0.000       0.000         1.000       1.000
+   2-PHE3-BB   2-SER2-BB       0.000       0.000         1.000       1.000
+   2-PHE4-BB   2-PHE3-BB       0.000       0.000         1.000       1.000
+   2-LEU7-BB   2-PHE6-BB       0.000       0.000         1.000       1.000
+   2-GLY8-BB   2-LEU7-BB       0.000       0.000         1.000       1.000
+  2-ALA10-BB   2-GLU9-BB       0.000       0.000         1.000       1.000
+  2-ASP16-BB  2-ARG15-BB       0.000       0.000         1.000       1.000
+  2-TRP18-BB  2-MET17-BB       0.000       0.000         1.000       1.000
+  2-ARG19-SC  2-ASP16-SC       0.000       0.000         1.000       1.000
+  2-ALA20-BB  2-ARG19-BB       0.000       0.000         1.000       1.000
+  2-ARG25-SC  2-ASP23-SC       2.000       1.000         0.000       0.000
+  2-ARG25-SC  2-GLY48-BB       0.000       0.000         1.000       1.000
+  2-ASN28-BB  2-ALA27-BB       0.000       0.000         1.000       1.000
+  2-TYR29-SC  2-GLU26-BB       0.000       0.000         1.000       1.000
+  2-ILE30-BB  2-TYR29-BB       0.000       0.000         1.000       1.000
+  2-GLY31-BB  2-ILE30-BB       0.000       0.000         1.000       1.000
+  2-SER32-BB  2-SER32-SC       0.000       0.000         1.000       1.000
+  2-SER32-SC  2-ILE30-BB       1.000       1.000         0.000       0.000
+  2-ASP33-BB  2-ASP33-SC       0.000       0.000         1.000       1.000
+  2-LYS34-BB  2-ASP33-BB       0.000       0.000         1.000       1.000
+  2-TYR35-BB  2-LYS34-BB       0.000       0.000         1.000       1.000
+  2-HSD37-BB  2-PHE36-BB       0.000       0.000         1.000       1.000
+  2-ASN41-BB  2-ASN41-SC       0.000       0.000         1.000       1.000
+  2-ASN41-SC  2-ALA38-BB       0.000       0.000         1.000       1.000
+  2-ASP43-BB  2-TYR42-BB       0.000       0.000         1.000       1.000
+  2-ALA44-BB  2-ASP43-BB       0.000       0.000         1.000       1.000
+  2-GLY51-BB  2-ASP23-SC       0.000       0.000         1.000       1.000
+  2-VAL52-BB  2-GLY51-BB       0.000       0.000         1.000       1.000
+  2-TRP53-BB  2-VAL52-BB       0.000       0.000         1.000       1.000
+  2-ALA54-BB  2-TRP53-BB       0.000       0.000         1.000       1.000
+   2-ALA55-T  2-ALA54-BB       0.000       0.000         1.000       1.000
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+SALT BRIDGES:
+Automatically Determined Salt Bridge Groups:
+ ANIONS: RESNAME   ATOM NAMES
+           GLU   OE1 OE2
+           ASP   OD1 OD2
+CATIONS: RESNAME   ATOM NAMES
+           SER   N
+           ARG   CZ
+           LYS   NZ
+
+Calculating Salt Bridges
+~ Salt bridges were already calculated and stored in None
+Parsing salt bridges
+~ Processed salt bridges saved to processed_salt_bridges.npy
+     ANION       CATION   Intralayer P(SB)   Interlayer P(SB)
+  1-ASP16-SC  1-ARG19-SC       0.000              1.000
+  1-ASP23-SC  1-ARG25-SC       1.000              1.000
+  1-GLU26-SC  1-LYS34-SC       1.000              0.000
+  1-GLU26-SC  1-ARG47-SC       0.000              1.000
+  1-ASP33-SC    2-SER2-T       0.000              1.000
+  2-ASP16-SC  2-ARG19-SC       0.000              1.000
+  2-ASP23-SC  2-ARG25-SC       1.000              1.000
+  2-GLU26-SC  2-LYS34-SC       1.000              0.000
+  2-GLU26-SC  2-ARG47-SC       0.000              1.000
+  2-ASP33-SC    1-SER2-T       1.000              1.000
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+PI STACKING INTERACTIONS:
+Calculating Pi Stacking Interactions
+~ Pi stacking interactions were already calculated and stored in None
+~ Processed pi interactions saved to processed_pistacking_interactions.npy
+                                Intralayer Probabilities               Interlayer Probabilities
+   RESIDUE-A   RESIDUE-B    Total    T      I      S      D       Total    T      I      S      D
+     1-PHE3      1-PHE3     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+     1-PHE4      1-PHE4     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+     1-PHE6      1-PHE6     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+     1-PHE6     1-TRP18     1.000  0.000  1.000  0.000  0.000     1.000  0.000  0.000  0.000  0.000
+    1-PHE11     1-PHE11     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    1-PHE11     1-TRP18     0.000  0.000  0.000  0.000  0.000     1.000  0.000  0.000  0.000  0.000
+    1-TRP18     1-TRP18     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    1-TYR21     1-TYR21     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    1-TYR29     1-TYR29     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    1-TYR35     1-TYR35     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    1-PHE36     1-PHE36     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    1-HSD37     1-HSD37     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    1-TYR42     1-TYR42     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    1-TRP53     1-TRP53     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+     2-PHE3      2-PHE3     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+     2-PHE4      2-PHE4     0.000  0.000  0.000  0.000  0.000     0.800  1.000  0.000  0.000  0.000
+     2-PHE6      2-PHE6     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+     2-PHE6     2-TRP18     1.000  0.000  1.000  0.000  0.000     1.000  0.000  0.000  0.000  0.000
+    2-PHE11     2-PHE11     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    2-PHE11     2-TRP18     0.000  0.000  0.000  0.000  0.000     1.000  0.000  0.000  0.000  0.000
+    2-TRP18     2-TRP18     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    2-TYR21     2-TYR21     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    2-TYR29     2-TYR29     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    2-TYR35     2-TYR35     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    2-PHE36     2-PHE36     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    2-HSD37     2-HSD37     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    2-TYR42     2-TYR42     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    2-TRP53     2-TRP53     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000

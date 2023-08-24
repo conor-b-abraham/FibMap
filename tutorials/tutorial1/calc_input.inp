@@ -1,0 +1,18 @@
+# `Fibmap.py calc` input file for Tutorial 1: Creating a FibMap from a PDB
+
+# Input Files
+topology_file                   = prepared.psf # The name of the topology file
+trajectory_file                 = prepared.pdb # The name(s) for the trajectory file(s)
+
+# Output
+# output_directory                = Using Default (Current Working Directory)
+verbose                         = True # Being Loud
+backup                          = False # Let's not be messy
+saveraw                         = False # We won't need these
+log                             = True # Let's just keep it
+
+# Options
+calctype                        = ALL # For a PDB, the calculations are very fast, so let's do them all
+n_protofilaments                = 2 # 6MST has 2 protofilaments
+omit_layers                     = 0 # No point in omitting layers from a PDB
+nprocs                          = 1 # Again, the calculations are very fast for a PDB

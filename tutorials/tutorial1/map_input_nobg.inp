@@ -1,0 +1,25 @@
+# `Fibmap.py map` input file for Tutorial 1: Creating a FibMap from a PDB
+
+# Input
+checkpoint_file        = calc_ALL.cpt # The checkpoint file written by calc for the last step
+
+# Output
+figure_file            = Tutorial1_FibMap_nobg.png # the name of the image file to save
+verbose                = True # Be Noisy
+backup                 = False # Let's not be messy
+log                    = True # Let's just keep it
+
+# Options
+nprocs                 = 1 # For a PDB, it will be fast
+
+# Additional Parameters
+# Hydrophobic Zippers and Water Channels
+water_region = 1:23-51 # Protofilament 1 water region 
+water_region = 2:23-51 # Protofilament 2 water region
+zipper_region = 1:2-33,2:2-33 # Zipper between protofilaments 1 and 2
+
+# Figure Settings
+figure_height = 4.5
+transparent_background = True
+legend = False
+

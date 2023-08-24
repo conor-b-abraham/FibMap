@@ -1,0 +1,211 @@
+
+╔════════════════════════════════════════════════════╗
+║ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ ║
+║ ░░███████╗██╗██████╗░███╗░░░███╗░█████╗░██████╗░░░ ║
+║ ░░██╔════╝██║██╔══██╗████╗░████║██╔══██╗██╔══██╗░░ ║
+║ ░░█████╗░░██║██████╦╝██╔████╔██║███████║██████╔╝░░ ║
+║ ░░██╔══╝░░██║██╔══██╗██║╚██╔╝██║██╔══██║██╔═══╝░░░ ║
+║ ░░██║░░░░░██║██████╦╝██║░╚═╝░██║██║░░██║██║░░░░░░░ ║
+║ ░░╚═╝░░░░░╚═╝╚═════╝░╚═╝░░░░░╚═╝╚═╝░░╚═╝╚═╝░░░░░░░ ║
+║ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ ║
+╚════════════════════════════════════════════════════╝
+Calculates and visualizes key intrafibril interactions within an amyloid fibril.
+
+Created by Conor B. Abraham in the Straub Group at Boston University
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+PARAMETERS:
+    - command: map
+Input
+    - trajectory_file: prepared.pdb
+    - topology_file: prepared.psf
+    - checkpoint_file: calc_ALL.cpt
+    - hb_processed_file: processed_hydrogen_bonds.npy
+    - hb_unprocessed_file: None
+    - sb_processed_file: processed_salt_bridges.npy
+    - sb_unprocessed_file: None
+    - pi_processed_file: processed_pistacking_interactions.npy
+    - pi_unprocessed_file: None
+    - map_positions_file: None
+Output
+    - output_directory: .
+    - verbose: True
+    - nprocs: 1
+    - nobackup: True
+    - figure_file: Tutorial1_FibMap_nobg.png
+    - showfig: True
+    - output_log: map.log
+    - output_cpt: map.cpt
+Options
+    - n_protofilaments: 2
+    - omit_layers: 0
+Figure Options
+    - figure_width: 6.5
+    - figure_height: 4.5
+    - legend: False
+    - figure_dpi: 300
+    - transparent_background: True
+    - numbered_residues: False
+Regions
+    - water_region: [(1, (23, 51))], [(2, (23, 51))]
+    - zipper_region: [(1, (2, 33)), (2, (2, 33))]
+Colors
+    - acidic_color: firebrick
+    - acidic_label_color: white
+    - basic_color: steelblue
+    - basic_label_color: white
+    - polar_color: seagreen
+    - polar_label_color: white
+    - nonpolar_color: white
+    - nonpolar_label_color: chain
+    - backbone_color: black, dimgray
+    - hbond_color_1: black
+    - hbond_color_2: white
+    - saltbridge_color_1: gold
+    - saltbridge_color_2: orange
+    - saltbridge_color_3: white
+    - pistacking_color_1: gray
+    - pistacking_color_2: white
+    - water_color: powderblue
+    - water_opacity: 0.5
+    - zipper_color: tan
+    - zipper_opacity: 0.5
+
+
+
+SEGMENTS TO BE ANALYZED:
+Protofilament 1: P11 P12 P13 P14 P15 P16
+Protofilament 2: P21 P22 P23 P24 P25 P26
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+CREATING FIBRIL MAP:
+~ Residue label fontsize set to 8.0pt Arial
+~ Residue positions saved to map_positions.npz
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+REGIONS:
+  Hydrophobic Zipper: 1-SER2 --> 1-ASP33 --> 2-SER2 --> 2-ASP33 --> 1-SER2
+       Water Channel: 1-ASP23 --> 1-GLY51 --> 1-ASP23
+       Water Channel: 2-ASP23 --> 2-GLY51 --> 2-ASP23
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+HYDROGEN BONDS:
+                                 P(H-BOND)
+     DONOR     ACCEPTOR   INTRALAYER  INTERLAYER
+    1-SER2-T  2-ASP33-SC     0.000       1.000
+   1-PHE3-BB   1-SER2-BB     0.000       1.000
+   1-PHE4-BB   1-PHE3-BB     0.000       1.000
+   1-LEU7-BB   1-PHE6-BB     0.000       1.000
+   1-GLY8-BB   1-LEU7-BB     0.000       1.000
+  1-ALA10-BB   1-GLU9-BB     0.000       1.000
+  1-ASP16-BB  1-ARG15-BB     0.000       0.800
+  1-TRP18-BB  1-MET17-BB     0.000       1.000
+  1-ARG19-SC  1-ASP16-SC     0.000       1.000
+  1-ALA20-BB  1-ARG19-BB     0.000       1.000
+  1-ARG25-SC  1-ASP23-SC     1.000       0.000
+  1-ARG25-SC  1-GLY48-BB     0.000       1.000
+  1-ASN28-BB  1-ALA27-BB     0.000       1.000
+  1-TYR29-SC  1-GLU26-BB     0.000       1.000
+  1-ILE30-BB  1-TYR29-BB     0.000       1.000
+  1-GLY31-BB  1-ILE30-BB     0.000       1.000
+  1-SER32-BB  1-SER32-SC     0.000       1.000
+  1-SER32-SC  1-ILE30-BB     0.833       0.000
+  1-ASP33-BB  1-ASP33-SC     0.000       1.000
+  1-LYS34-BB  1-ASP33-BB     0.000       1.000
+  1-TYR35-BB  1-LYS34-BB     0.000       1.000
+  1-HSD37-BB  1-PHE36-BB     0.000       1.000
+  1-ASN41-BB  1-ASN41-SC     0.000       1.000
+  1-ASN41-SC  1-ALA38-BB     0.000       1.000
+  1-ASP43-BB  1-TYR42-BB     0.000       1.000
+  1-ALA44-BB  1-ASP43-BB     0.000       1.000
+  1-GLY51-BB  1-ASP23-SC     0.000       1.000
+  1-VAL52-BB  1-GLY51-BB     0.000       1.000
+  1-TRP53-BB  1-VAL52-BB     0.000       1.000
+  1-ALA54-BB  1-TRP53-BB     0.000       1.000
+   1-ALA55-T  1-ALA54-BB     0.000       1.000
+    2-SER2-T  1-ASP33-SC     0.000       1.000
+   2-PHE3-BB   2-SER2-BB     0.000       1.000
+   2-PHE4-BB   2-PHE3-BB     0.000       1.000
+   2-LEU7-BB   2-PHE6-BB     0.000       1.000
+   2-GLY8-BB   2-LEU7-BB     0.000       1.000
+  2-ALA10-BB   2-GLU9-BB     0.000       1.000
+  2-ASP16-BB  2-ARG15-BB     0.000       1.000
+  2-TRP18-BB  2-MET17-BB     0.000       1.000
+  2-ARG19-SC  2-ASP16-SC     0.000       1.000
+  2-ALA20-BB  2-ARG19-BB     0.000       1.000
+  2-ARG25-SC  2-ASP23-SC     1.000       0.000
+  2-ARG25-SC  2-GLY48-BB     0.000       1.000
+  2-ASN28-BB  2-ALA27-BB     0.000       1.000
+  2-TYR29-SC  2-GLU26-BB     0.000       1.000
+  2-ILE30-BB  2-TYR29-BB     0.000       1.000
+  2-GLY31-BB  2-ILE30-BB     0.000       1.000
+  2-SER32-BB  2-SER32-SC     0.000       1.000
+  2-SER32-SC  2-ILE30-BB     1.000       0.000
+  2-ASP33-BB  2-ASP33-SC     0.000       1.000
+  2-LYS34-BB  2-ASP33-BB     0.000       1.000
+  2-TYR35-BB  2-LYS34-BB     0.000       1.000
+  2-HSD37-BB  2-PHE36-BB     0.000       1.000
+  2-ASN41-BB  2-ASN41-SC     0.000       1.000
+  2-ASN41-SC  2-ALA38-BB     0.000       1.000
+  2-ASP43-BB  2-TYR42-BB     0.000       1.000
+  2-ALA44-BB  2-ASP43-BB     0.000       1.000
+  2-GLY51-BB  2-ASP23-SC     0.000       1.000
+  2-VAL52-BB  2-GLY51-BB     0.000       1.000
+  2-TRP53-BB  2-VAL52-BB     0.000       1.000
+  2-ALA54-BB  2-TRP53-BB     0.000       1.000
+   2-ALA55-T  2-ALA54-BB     0.000       1.000
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+SALT BRIDGES:
+                                 P(SALT BRIDGE)
+     DONOR     ACCEPTOR   INTRALAYER  INTERLAYER
+  1-ASP16-SC  1-ARG19-SC     0.000       1.000
+  1-ASP23-SC  1-ARG25-SC     1.000       1.000
+  1-GLU26-SC  1-LYS34-SC     1.000       0.000
+  1-GLU26-SC  1-ARG47-SC     0.000       1.000
+  1-ASP33-SC    2-SER2-T     0.000       1.000
+  2-ASP16-SC  2-ARG19-SC     0.000       1.000
+  2-ASP23-SC  2-ARG25-SC     1.000       1.000
+  2-GLU26-SC  2-LYS34-SC     1.000       0.000
+  2-GLU26-SC  2-ARG47-SC     0.000       1.000
+  2-ASP33-SC    1-SER2-T     1.000       1.000
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+PI STACKING INTERACTIONS:
+                                Intralayer Probabilities               Interlayer Probabilities
+   RESIDUE-A   RESIDUE-B    Total    T*     I*     S*     D*      Total    T*     I*     S*     D*
+     1-PHE3        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+     1-PHE4        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+     1-PHE6        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+     1-PHE6     1-TRP18     1.000  0.000  1.000  0.000  0.000     1.000  0.000  0.000  0.000  0.000
+    1-PHE11        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    1-PHE11     1-TRP18     0.000  0.000  0.000  0.000  0.000     1.000  0.000  0.000  0.000  0.000
+    1-TRP18        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    1-TYR21        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    1-TYR29        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    1-TYR35        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    1-PHE36        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    1-HSD37        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    1-TYR42        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    1-TRP53        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+     2-PHE3        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+     2-PHE4        SAME     0.000  0.000  0.000  0.000  0.000     0.800  1.000  0.000  0.000  0.000
+     2-PHE6        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+     2-PHE6     2-TRP18     1.000  0.000  1.000  0.000  0.000     1.000  0.000  0.000  0.000  0.000
+    2-PHE11        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    2-PHE11     2-TRP18     0.000  0.000  0.000  0.000  0.000     1.000  0.000  0.000  0.000  0.000
+    2-TRP18        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    2-TYR21        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    2-TYR29        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    2-TYR35        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    2-PHE36        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    2-HSD37        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    2-TYR42        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+    2-TRP53        SAME     0.000  0.000  0.000  0.000  0.000     1.000  1.000  0.000  0.000  0.000
+KEY (*)
+The following probabilities are the probability of each kind of pi-stacking interaction when a given pi stacking interaction forms:
+T: T-Shaped    I: Intermediate    S: Sandwich    D: Parallel Displaced
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+COMPLETE:
+~ Fibril Map saved to /home/conor/Research/programs/FibMap/tutorials/tutorial1/worked/Tutorial1_FibMap_nobg.png

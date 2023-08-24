@@ -1,0 +1,12 @@
+# Created checkpoint file on 24/08/2023 at 11:56:17
+trajectory_file = /home/conor/Research/programs/FibMap/tutorials/tutorial1/worked/prepared.pdb
+topology_file = /home/conor/Research/programs/FibMap/tutorials/tutorial1/worked/prepared.psf
+output_directory = /home/conor/Research/programs/FibMap/tutorials/tutorial1/worked
+n_protofilaments = 2
+omit_layers = 0
+# The following addition was made to checkpoint file on 24/08/2023 at 11:56:18
+hb_processed_file = /home/conor/Research/programs/FibMap/tutorials/tutorial1/worked/processed_hydrogen_bonds.npy
+# The following addition was made to checkpoint file on 24/08/2023 at 11:56:19
+sb_processed_file = /home/conor/Research/programs/FibMap/tutorials/tutorial1/worked/processed_salt_bridges.npy
+# The following addition was made to checkpoint file on 24/08/2023 at 11:56:19
+pi_processed_file = /home/conor/Research/programs/FibMap/tutorials/tutorial1/worked/processed_pistacking_interactions.npy
