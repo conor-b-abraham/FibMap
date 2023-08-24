@@ -123,7 +123,7 @@ For interlayer interactions, this means that the probabilties need to be adjuste
 
 On the FibMap, we will be representing two different interactions with the same representation, an $A_{i} \; to \; B_{i+1}$ interaction and an $A_{i} \; to \; B_{i+2}$ interaction. When calculating this probability we have to account for the fact that a maximum of 3 $A_{i} \; to \; B_{i+1}$ interactions can occur and a maximum of 2 $A_{i} \; to \; B_{i+2}$ interactions can occur. We also have to account for the fact that in the case that a single interaction does not occur, it does not necessarily change the overall probability of an $A_{i} \; to \; B_{j \neq i}$ interaction (e.g. if $A_{4} \; to \; B_{3}$ does not occur, but the probability of an $A_{i} \; to \; B_{i+2}$ is 1, then the overall probability of an $A_{i} \; to \; B_{j \neq i}$ interaction is still 1). So, the overall probability of an $A_{i} \; to \; B_{j \neq i}$ interaction at a given timestep, $f$, is given by:
 
-$$p_{A_{i} \; to \; B_{j \neq i}}(f) = \mathrm{max} \left{ p_{A_{i} \; to \; B_{i+1}}(f), \; p_{A_{i} \; to \; B_{i+2}}(f), \; p_{A_{i} \; to \; B_{i+1, i+2}}(f) \right},$$
+$$p_{A_{i} \; to \; B_{j \neq i}}(f) = \mathrm{max} \left\lbrace p_{A_{i} \; to \; B_{i+1}}(f), \; p_{A_{i} \; to \; B_{i+2}}(f), \; p_{A_{i} \; to \; B_{i+1, i+2}}(f) \right,$$
 
 where $p_{A_{i} \; to \; B_{i+1}}(f)$ is the probability that eligible sites are bound by an $A_{i} \; to \; B_{i+1}$ interaction, $p_{A_{i} \; to \; B_{i+2}}(f)$ is the probability that eligible sites are bound by an $A_{i} \; to \; B_{i+2}$ interaction, and $p_{A_{i} \; to \; B_{i+1, i+2}}(f)$ is the probability that elibile sites are bound by either an $A_{i} \; to \; B_{i+1}$ interaction or an $A_{i} \; to \; B_{i+2}$ interaction. We compute these subprobabilities by considering the number of sites involved in each interaction rather than by considering the number of interactions themselves, allowing us to extrapolate to an infinite fibril. These subprobabilities are given by:
 
@@ -170,7 +170,7 @@ To determine the positions of the residues on the FibMap the positions of a cent
 Clone this repository:
 
 ```
-git clone git@github.com:conorba/fibmap.git
+git clone git@github.com:conor-b-abraham/FibMap.git
 ```
 
 And makes sure the dependencies below are installed.
@@ -428,7 +428,7 @@ See **Figure 8** below for color guide.
 | `zipper_color = color` | tan | Color of hydrophobic zipper regions. |
 | `zipper_opacity = float` (0 $\leq$ float $\leq$ 1) | 0.5 | Opacity of hydrophobic zipper regions. |
 
-<img src="./res/legend.png" width="60%">
+<img src="./res/Legend.png" width="60%">
 
 > **Figure 8:** Guide to adjustable colors.
 
@@ -764,7 +764,9 @@ A sample trajectory with its topology file is provided in the tutorials/tutorial
 
 ## License ##
 
-Copyright 2023 Conor B. Abraham
+FibMap is distributed under the MIT license:
+
+Copyright &copy; 2023 Conor B. Abraham
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
