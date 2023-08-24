@@ -60,7 +60,7 @@ Potential hydrogen bond acceptors and hydrogens are guessed using the atom charg
 
 > **Figure 2:** Schematic showing $\theta_{D-H-A}$ and $D_{D-A}$ of a hydrogen bond. For a given set of a potential hydrogen bond donor and hydrogen and a potential hydrogen bond acceptor, $\theta_{D-H-A}$ and $D_{D-A}$ must be below their cutoff.
 
-Hydrogen bonds are identified from sets of potential hydrogen bonds donors, acceptors, and hydrogens using a donor-acceptor distance cutoff ($D_{D-A}$, Default: 3.5$\AA$) and a donor-hydrogen-acceptor angle cutoff ($\theta_{D-H-A}$, Default: 150$^{\circ}$) as shown in **Figure 2**. These cutoffs can be changed from the commandline or with an input file if desired (See [Usage: calc: Parameters](#parameters)).
+Hydrogen bonds are identified from sets of potential hydrogen bonds donors, acceptors, and hydrogens using a donor-acceptor distance cutoff ($D_{D-A}$, Default: 3.5Å) and a donor-hydrogen-acceptor angle cutoff ($\theta_{D-H-A}$, Default: 150$^{\circ}$) as shown in **Figure 2**. These cutoffs can be changed from the commandline or with an input file if desired (See [Usage: calc: Parameters](#parameters)).
 
 ### Salt Bridges ###
 FibMap calculates salt bridges by identifying charged residues and calculating the minimum distance between the charged regions on their sidechains. If the minimum distance between a cation and an anion is below the distance cutoff (Default: 4Å) it is counted as a salt bridge (**Figure 3**). The distance cutoff for a salt bridge can be changed from the commandline or with an input file if desired (See [Usage: calc: Parameters](#parameters)).
@@ -79,7 +79,7 @@ Determination of charged residues capable of forming salt bridges can be done ma
 
 <img align="left" src="./res/SaltBridgeAuto.png" width="100%">
 
-> **Figure 3:** Schematic showing the automatic salt bridge group determination method and distances. For lysine (left), the overall charge of the NH$_3$ group is 0.69e. Because this is the largest charge on the lysine sidechain, the NZ atom will be used as a reference point. For aspartic acid (right) the OD1 and OD2 atoms each carry a -0.76e charge. Assuming this is below the anion charge cutoff, both atoms will be used as reference points. As aspartic acid has 2 reference points and lysine has 1 reference point, two distances are computed, $D_{NZ-OD1}$ and $D_{NZ-OD2}$. At least one of these distances must be below the salt bridge distance cutoff for it to count as a salt bridge.
+> **Figure 3:** Schematic showing the automatic salt bridge group determination method and distances. For lysine (left), the overall charge of the NH<sub>3</sub> group is 0.69e. Because this is the largest charge on the lysine sidechain, the NZ atom will be used as a reference point. For aspartic acid (right) the OD1 and OD2 atoms each carry a -0.76e charge. Assuming this is below the anion charge cutoff, both atoms will be used as reference points. As aspartic acid has 2 reference points and lysine has 1 reference point, two distances are computed, $D_{NZ-OD1}$ and $D_{NZ-OD2}$. At least one of these distances must be below the salt bridge distance cutoff for it to count as a salt bridge.
 
 If done automatically, charged residues are identified using the atom charges in the topology. Then, for each heavy atom in a charged residue, the total charge of that atom and any connected hydrogens is computed (**Figure 3**). For anions, if the total charge is less than the charge cutoff (Default: -0.5e), the heavy atom is added to the charged region for that atom. For cations, if the total charge is greater than the charge cutoff (Default: 0.5e), the heavy atom is added to the charged region for that atom. If no heavy atom meets the cutoff requirement for an acidic or basic residue, the heavy atom closest to the cutoff will be used and a warning will be thrown.
 
@@ -91,7 +91,7 @@ If done automatically, charged residues are identified using the atom charges in
 
 To calculate pi-stacking interactions, FibMap follows the methodology developed by Zhao et al. [[13]](#references). For the ring of each phenylalanine, tyrosine, histidine, and tryptophan residue, we define its normal vector ($\mathbf{n_i}$), ring plane vector ($\mathbf{r_i}$), and centroid (**Figure 4**). Then, for each pair of rings, we calculate their centroid-centroid distance ($\mathrm{R_{cen}}$), the acute angle between the centroid-centroid vector and $\mathbf{r_1}$ ($\theta$), the acute angle between the centroid-centroid vector and $\mathbf{r_2}$, and the acute angle between $\mathbf{n_1}$ and $\mathbf{n_2}$ (**Figure 4**).
 
-Any pair with $\mathrm{R_{cen}} \leq 7.2 \AA$ could be a pi stacking interaction, so we define its type (**Figure 5**). If $\theta \lt 30^{\circ}$ and $\delta \lt 30^{\circ}$, its a spurious interaction (not a pi stacking interaction). If $\gamma \lt 50^{\circ}$, it's a T-shaped pi stacking interaction. If $30^{\circ} \leq \gamma \leq 50^{\circ}$, it's an intermediate pi stacking interaction. If $\gamma \lt 30^{\circ}$ and either $\theta \gt 80^{\circ}$ or $\delta \gt 80^{\circ}$, its a sandwich pi stacking interaction. If $\gamma \lt 30^{\circ}$ and neither $\theta \gt 80^{\circ}$ nor $\delta \gt 80^{\circ}$, its a parallel displaced pi stacking interaction.
+Any pair with $\mathrm{R_{cen}} \leq 7.2$ Å could be a pi stacking interaction, so we define its type (**Figure 5**). If $\theta \lt 30^{\circ}$ and $\delta \lt 30^{\circ}$, its a spurious interaction (not a pi stacking interaction). If $\gamma \lt 50^{\circ}$, it's a T-shaped pi stacking interaction. If $30^{\circ} \leq \gamma \leq 50^{\circ}$, it's an intermediate pi stacking interaction. If $\gamma \lt 30^{\circ}$ and either $\theta \gt 80^{\circ}$ or $\delta \gt 80^{\circ}$, its a sandwich pi stacking interaction. If $\gamma \lt 30^{\circ}$ and neither $\theta \gt 80^{\circ}$ nor $\delta \gt 80^{\circ}$, its a parallel displaced pi stacking interaction.
 
 <img align="left" src="./res/PiStackingTypes.png" width="60%">
 
@@ -228,14 +228,14 @@ The `calc` subcommand is used to compute the intermolecular forces within the fi
 | `--calctype {ALL, HB, SB, PI, HB+SB, HB+PI, SB+PI}` | ALL | What type of interaction to compute. Options are ALL, HB, SB, PI, HB+SB, HB+PI, and SB+PI. ALL computes all, options with HB computes hydrogen bonds, options with SB computes salt bridges, and options with PI computes pi stacking interactions. |
 | `-n/--n_protofilaments int` (int $\gt$ -2)| Required | The number of protofilaments in the fibril (i.e. how many segments are in each layer of the fibril). |
 | `--omit_layers int` (int $\geq$ 0) | 0 | How many layers on each end of the fibril to omit from analysis. This is especially important for analysis of simulation trajectories of a finite fibril model as delamination at the ends of the fibril will bias the results.|
-| `--hbond_distance_cutoff float` (float $\gt$ 0) | 3.5$\AA$ | The cutoff distance (in $\AA$) for hydrogen bonds. The distance between a potential donor and potential acceptor must be less than this value to be counted as a hydrogen bond. |
+| `--hbond_distance_cutoff float` (float $\gt$ 0) | 3.5Å | The cutoff distance (in Å) for hydrogen bonds. The distance between a potential donor and potential acceptor must be less than this value to be counted as a hydrogen bond. |
 | `--hbond_angle_cutoff float` (float $\gt$ 0) | 150$^{\circ}$ | The cutoff angle (in degrees) for hydrogen bonds. The angle from a potential donor to a potential hydrogen to a potential acceptor must be greater than this value to be counted as a hydrogen bond. |
 | `--saltbridge_selection_mode {auto, manual}` | auto | The salt bridge participant selection mode. If auto, `--saltbridge_anion_charge_cutoff` and `--saltbridge_cation_charge_cutoff` will be used to identify potential salt bridge participants. If manual, `--saltbridge_anion_sel` and `--saltbridge_cation_sel` will be used to find the participants. |
 | `--saltbridge_anion_charge_cutoff float` | -0.5e | Used if `--saltbridge_selection_mode auto`. Charge cutoff (in e) for salt bridge participant selection. If an atom group belonging to a anionic residue has a charge less than this value, it will be considered a salt bridge participant. |
 | `--saltbridge_cation_charge_cutoff float` | -0.5e | Used if `--saltbridge_selection_mode auto`. Charge cutoff (in e) for salt bridge participant selection. If an atom group belonging to a cationic residue has a charge greater than this value, it will be considered a salt bridge participant. |
 | `--saltbridge_anion_sel MDAnalysis_Selection_String` | ((resname ASP and name OD1 OD2) or (resname GLU and name OE1 OE2)) | Used if `--saltbridge_selection_mode manual`. Selection command for anionic salt bridge participants. For help formatting this string, see the [MDAnalysis Documentation](https://docs.mdanalysis.org/stable/documentation_pages/selections.html). |
 | `--saltbridge_cation_sel MDAnalysis_Selection_String` | ((resname LYS and name NZ) or (resname ARG and name NH1 NH2 NE) or (resname HSP and name ND1 NE2)) | Used if `--saltbridge_selection_mode manual`. Selection command for cationic salt bridge participants. For help formatting this string, see the [MDAnalysis Documentation](https://docs.mdanalysis.org/stable/documentation_pages/selections.html). |
-| `--saltbridge_distance_cutoff float` (float $\gt$ 0) | 4.0$\AA$ | The cutoff distance (in $\AA$) for salt bridges. The minimum distance between anionic and cationic groups must be less than or equal to this value to be counted as a salt bridge. |
+| `--saltbridge_distance_cutoff float` (float $\gt$ 0) | 4.0Å | The cutoff distance (in Å) for salt bridges. The minimum distance between anionic and cationic groups must be less than or equal to this value to be counted as a salt bridge. |
 | `--pistacking_phe_sel MDAnalysis_Selection_String` | (resname PHE and name CG CD2 CE2 CZ CE1 CD1) | The MDAnalysis selection command for phenylalanine rings. For help formatting this string, see the [MDAnalysis Documentation](https://docs.mdanalysis.org/stable/documentation_pages/selections.html). |
 | `--pistacking_tyr_sel MDAnalysis_Selection_String` | (resname TYR and name CG CD2 CE2 CZ CE1 CD1) | The MDAnalysis selection command for tyrosine rings. For help formatting this string, see the [MDAnalysis Documentation](https://docs.mdanalysis.org/stable/documentation_pages/selections.html). |
 | `--pistacking_his_sel MDAnalysis_Selection_String` | (resname HSD HSE HSP and name CG CD2 NE2 CE1 ND1) | The MDAnalysis selection command for histidine rings. For help formatting this string, see the [MDAnalysis Documentation](https://docs.mdanalysis.org/stable/documentation_pages/selections.html). |
@@ -641,19 +641,19 @@ end
 This .npz file contains the following four NumPy arrays:
 * **CA**: Contains the $\alpha$-Carbon positions
   
-   This is an array of shape ($N_{\mathrm{protofilaments}}$, $N_{\mathrm{residues}}$, $2$). For each residue in each chain, its position on the map is provided in $\AA$.
+   This is an array of shape ($N_{\mathrm{protofilaments}}$, $N_{\mathrm{residues}}$, $2$). For each residue in each chain, its position on the map is provided in Å.
 
 * **SC**: Contains the sidechain positions
   
-   This is an array of shape ($N_{\mathrm{protofilaments}}$, $N_{\mathrm{residues}}$, $2$). For each residue in each chain, the center of mass of its sidechain on the plane of the map is provided in $\AA$.
+   This is an array of shape ($N_{\mathrm{protofilaments}}$, $N_{\mathrm{residues}}$, $2$). For each residue in each chain, the center of mass of its sidechain on the plane of the map is provided in Å.
 
 * **CT**: Contains the C-terminus positions
   
-   This is an array of shape ($N_{\mathrm{protofilaments}}$, $2$). For each chain, the center of mass of the terminal atoms of its C-terminal residue on the plane of the map is provided in $\AA$.
+   This is an array of shape ($N_{\mathrm{protofilaments}}$, $2$). For each chain, the center of mass of the terminal atoms of its C-terminal residue on the plane of the map is provided in Å.
 
 * **NT**: Contains the N-terminus positions
   
-   This is an array of shape ($N_{\mathrm{protofilaments}}$, $2$). For each chain, the center of mass of the terminal atoms of its N-terminal residue on the plane of the map is provided in $\AA$.
+   This is an array of shape ($N_{\mathrm{protofilaments}}$, $2$). For each chain, the center of mass of the terminal atoms of its N-terminal residue on the plane of the map is provided in Å.
 
 These arrays can be accessed using NumPy:
 
@@ -760,14 +760,19 @@ A sample trajectory with its topology file is provided in the tutorials/tutorial
 
 </details>
 
-
 <p align="left">(<a href="#top">back to top</a>)</p>
-
 
 ## License ##
 
-<p align="left">(<a href="#top">back to top</a>)</p>
+Copyright 2023 Conor B. Abraham
 
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+<p align="left">(<a href="#top">back to top</a>)</p>
 
 ## References ##
 1. Fowler, D. M.; Koulov, A. V.; Alory-Jost, C.; Marks, M. S.; Balch, W. E.; Kelly, J. W. *PLoS biology* **2006**, *4*, e6. https://doi.org/10.1371/journal.pbio.0040006
@@ -785,7 +790,6 @@ A sample trajectory with its topology file is provided in the tutorials/tutorial
 13. Zhao, Y., Li, J., Gu, H. et al. *Interdiscip Sci Comput Life Sci* **2015**, *7*, 211–220. https://doi.org/10.1007/s12539-015-0263-z
    
 <p align="left">(<a href="#top">back to top</a>)</p>
-
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
