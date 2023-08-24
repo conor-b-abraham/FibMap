@@ -402,7 +402,6 @@ The above parameters (and the additional parameters below) can be provided in an
                         
 **Colors**
 
-See **Figure 8** below for color guide.
 > *NOTE: All colors must be valid matplotlib colors. See matplotlib [documentation](https://matplotlib.org/stable/tutorials/colors/colors.html) for options. Some residue-specific colors (if indicated) can also be set to the color of the residues' chains with option "chain".*
 
 | Argument | Default | Description |
@@ -428,8 +427,10 @@ See **Figure 8** below for color guide.
 | `zipper_color = color` | tan | Color of hydrophobic zipper regions. |
 | `zipper_opacity = float` (0 $\leq$ float $\leq$ 1) | 0.5 | Opacity of hydrophobic zipper regions. |
 
+> *NOTE: See **Figure 8** below for color guide.*
+
 <p align="center">
-<img src="./res/Legend.png" width="70%">
+<img src="./res/ColorGuide.png" width="70%">
 </p>
 
 > **Figure 8:** Guide to adjustable colors.
