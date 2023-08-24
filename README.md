@@ -37,7 +37,7 @@ Developed by Conor B. Abraham in the Straub Group at Boston University, Departme
 
 ## Disclaimer ##
 
-FibMap is still under development. If you run into any issues please report them.
+FibMap is still a work in progress. If you run into any issues please report them [here](https://github.com/conor-b-abraham/FibMap/issues).
 
 ## Background and Motivation ##
 
