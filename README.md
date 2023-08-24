@@ -429,7 +429,7 @@ The above parameters (and the additional parameters below) can be provided in an
 
 > *NOTE: See **Figure 8** below for color guide.*
 
-<img src="res/ColorGuide.png" width="100%">
+<img src="./res/ColorGuide.png" width="100%">
 
 > **Figure 8:** Guide to adjustable colors.
 
