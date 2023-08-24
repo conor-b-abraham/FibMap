@@ -581,8 +581,9 @@ class FibrilMap:
         Initialize figure of correct size
         '''
         # First, we need to find the bead radius: Bead radius will be 1/3 the minimum alpha-Carbon alpha-Carbon "bonded" distance
-        min_bonded_dist = np.round(np.min([np.sqrt((np.diff(p, axis=0)**2).sum(axis=1)) for p in ca_positions]))
+        min_bonded_dist = np.ceil(np.min([np.sqrt((np.diff(p, axis=0)**2).sum(axis=1)) for p in ca_positions]))
         temp_underradius = 5*min_bonded_dist/12
+
 
         # Second, we find the x and y span covered by the residues
         maxx = np.ceil(np.max((ca_positions[:,:,0].max(), sc_positions[:,:,0].max(), nt_positions[:,0].max(), ct_positions[:,0].max())))+(2*temp_underradius)

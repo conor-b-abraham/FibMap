@@ -428,7 +428,9 @@ See **Figure 8** below for color guide.
 | `zipper_color = color` | tan | Color of hydrophobic zipper regions. |
 | `zipper_opacity = float` (0 $\leq$ float $\leq$ 1) | 0.5 | Opacity of hydrophobic zipper regions. |
 
-<img src="./res/Legend.png" width="60%">
+<p align="center">
+<img src="./res/Legend.png" width="70%">
+</p>
 
 > **Figure 8:** Guide to adjustable colors.
 
@@ -724,7 +726,7 @@ All of the necessary files for the following two tutorials can be found in the t
 <summary>The result should look like this:</summary>
 
 <p align="center">
-<img src="./tutorials/tutorial1/worked/Tutorial1_FibMap.png" width="100%">
+<img src="./res/Tutorial1_FibMap.png" width="100%">
 </p>
 
 > **Figure 12:** Output for Tutorial 1.
@@ -753,7 +755,7 @@ A sample trajectory with its topology file is provided in the tutorials/tutorial
 <summary>The result should look like this:</summary>
 
 <p align="center">
-<img src="./tutorials/tutorial2/worked/Tutorial2_FibMap.png" width="100%">
+<img src="./res/Tutorial2_FibMap.png" width="100%">
 </p>
 
 > **Figure 13:** Output for Tutorial 2.

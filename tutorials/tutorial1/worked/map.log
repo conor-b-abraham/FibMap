@@ -32,7 +32,7 @@ Output
     - verbose: True
     - nprocs: 1
     - nobackup: True
-    - figure_file: Tutorial1_FibMap_nobg.png
+    - figure_file: Tutorial1_FibMap.png
     - showfig: True
     - output_log: map.log
     - output_cpt: map.cpt
@@ -41,10 +41,10 @@ Options
     - omit_layers: 0
 Figure Options
     - figure_width: 6.5
-    - figure_height: 4.5
-    - legend: False
+    - figure_height: 3.5
+    - legend: True
     - figure_dpi: 300
-    - transparent_background: True
+    - transparent_background: False
     - numbered_residues: False
 Regions
     - water_region: [(1, (23, 51))], [(2, (23, 51))]
@@ -79,7 +79,7 @@ Protofilament 2: P21 P22 P23 P24 P25 P26
 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 CREATING FIBRIL MAP:
-~ Residue label fontsize set to 8.0pt Arial
+~ Residue label fontsize set to 6.0pt Arial
 ~ Residue positions saved to map_positions.npz
 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -208,4 +208,4 @@ T: T-Shaped    I: Intermediate    S: Sandwich    D: Parallel Displaced
 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 COMPLETE:
-~ Fibril Map saved to /home/conor/Research/programs/FibMap/tutorials/tutorial1/worked/Tutorial1_FibMap_nobg.png
+~ Fibril Map saved to /home/conor/Research/programs/FibMap/tutorials/tutorial1/worked/Tutorial1_FibMap.png
