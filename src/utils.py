@@ -215,7 +215,6 @@ def acute_angle(a, b):
     angle = angle180(a, b)
     if angle > 90:
         angle = 180 - angle
-    angle = 90 - angle
     return angle
 
 def relative_path(path):

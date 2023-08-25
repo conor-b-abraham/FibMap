@@ -662,25 +662,19 @@ def _delta(a, b):
     '''
     delta: acute angle between centroid-centroid vector and the aromatic ring plane of ring 2
     '''
-    v = b[3:]-a[3:]
-    v = v/np.linalg.norm(v)
-    # angle = np.rad2deg(np.arccos(np.clip(v.dot(b[:3]), -1.0, 1.0)))
-    # if angle > 90:
-    #     angle = 180 - angle
-    # angle = 90 - angle
-    return utils.acute_angle(v, b)
-
+    v = b[:3]-a[:3] # Centroid-Centroid Vector
+    v = v/np.linalg.norm(v) # Centroid-Centroid Unit Vector
+    ccn_angle = utils.acute_angle(v, b[3:]) # Angle between centroid-centroid vector and normal of ring 2
+    return 90 - ccn_angle # Angle between centroid-centroid vector and plane of ring 2
+    # 
 def _theta(a, b):
     '''
     theta: acute angle between centroid-centroid vector and the aromatic ring plane of ring 1
     '''
-    v = b[3:]-a[3:]
-    v = v/np.linalg.norm(v)
-    # angle = np.rad2deg(np.arccos(np.clip(v.dot(a[:3]), -1.0, 1.0)))
-    # if angle > 90:
-    #     angle = 180 - angle
-    # angle = 90 - angle
-    return utils.acute_angle(v, a)
+    v = b[:3]-a[:3] # Centroid-Centroid Vector
+    v = v/np.linalg.norm(v) # Centroid-Centroid Unit Vector
+    ccn_angle = utils.acute_angle(v, a[3:]) # Angle between centroid-centroid vector and normal of ring 1
+    return 90 - ccn_angle # Angle between centroid-centroid vector and plane of ring 1
 
 def _calc_pipi(frame_chunk, u, sel, pairinfo, phe_sel="(resname PHE and name CG CD2 CE2 CZ CE1 CD1)", tyr_sel="(resname TYR and name CG CD2 CE2 CZ CE1 CD1)", his_sel="(resname HSD HSE HSP and name CG CD2 NE2 CE1 ND1)", trp_sel="(resname TRP and name CG CD1 NE1 CE2 CD2)"):
     '''
@@ -741,7 +735,6 @@ def _calc_pipi(frame_chunk, u, sel, pairinfo, phe_sel="(resname PHE and name CG 
     else:
         results = np.vstack(results)
     
-
     return results
 
 def _classify_pipi(pipi_results):
@@ -917,7 +910,7 @@ class PiStackingCalculator:
             self.raw_results[:,4]-self.raw_results[:,1],
             self.raw_results[:,-1] # Type
         ))
-        search_array[search_array[:,-1]!=0,-1] = 1 # Interlayer (1) or Intralayer (0)
+        search_array[search_array[:,-2]!=0,-2] = 1 # Interlayer (1) or Intralayer (0)
         # search_array:: 0:D_p, 1: D_r, 2: A_p, 3: A_r, 4: IntraLvInterL, 5: Type
 
         type_p_array = np.zeros((total_probabilities.shape[0],4))
