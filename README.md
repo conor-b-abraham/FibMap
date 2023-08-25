@@ -1,5 +1,5 @@
 <p align="center">
-<img src="./res/FibMap_Logo.png" width="50%">
+<img src="./pics/FibMap_Logo.png" width="50%">
 </p>
 
 Fibmap is an automated tool for calculating and displaying the intermolecular forces (Salt Bridges, Hydrogen Bonds, and Pi Stacking interactions) within a finite amyloid fibril model from a PDB file or Molecular Dynamics trajectory.  
@@ -45,7 +45,7 @@ Naturally formed amyloid fibrils can be categorized into two groups: (1) Functio
 
 FibMap.py was created to aid the analysis of the evergrowing collection of amyloid fibrils available on the [RCSB PDB Protein Data Bank](https://www.rcsb.org/) and to understand commonalities and differences among amyloid fibril polymorphs. 
 
-<img align="center" src="./res/abstract.png" width="100%">
+<img align="center" src="./pics/abstract.png" width="100%">
 
 > **Figure 1:** FibMap creates an informative figure displaying the residues and key contacts within an amyloid fibril. The image on the left was created using Visual Molecular Dynamics (VMD) [[11]](#references). The shown fibril is the human Serum Amyloid A fibril ([PDB 6MST](https://doi.org/10.2210/pdb6MST/pdb))[[12]](#references).
 
@@ -56,11 +56,11 @@ FibMap uses MDAnalysis's Hydrogen Bond Analysis tool for calculating hydrogen bo
 
 Potential hydrogen bond acceptors and hydrogens are guessed using the atom charge information. An atom whose charge is less than -0.5e is considered a potential acceptor. Atoms with a mass greater than 0.9u and less than 1.1u and a charge greater than 0.3e are considered potential hydrogen bonded hydrogens. Potential hydrogen bond donors are inferred from the list of potential hydrogen bonded hydrogens.
 
-<img align="left" src="./res/HBonds.png" width="30%">
+<img align="left" src="./pics/HBonds.png" width="30%">
 
 > **Figure 2:** Schematic showing $\theta_{D-H-A}$ and $D_{D-A}$ of a hydrogen bond. For a given set of a potential hydrogen bond donor and hydrogen and a potential hydrogen bond acceptor, $\theta_{D-H-A}$ and $D_{D-A}$ must be below their cutoff.
 
-Hydrogen bonds are identified from sets of potential hydrogen bonds donors, acceptors, and hydrogens using a donor-acceptor distance cutoff ($D_{D-A}$, Default: 3.5Å) and a donor-hydrogen-acceptor angle cutoff ($\theta_{D-H-A}$, Default: 150$^{\circ}$) as shown in **Figure 2**. These cutoffs can be changed from the commandline or with an input file if desired (See [Usage: calc: Parameters](#parameters)).
+Hydrogen bonds are identified from sets of potential hydrogen bonds donors, acceptors, and hydrogens using a donor-acceptor distance cutoff ($D_{D-A}$, Default: 3.5Å) and a donor-hydrogen-acceptor angle cutoff ($\theta_{D-H-A}$, Default: 150°) as shown in **Figure 2**. These cutoffs can be changed from the commandline or with an input file if desired (See [Usage: calc: Parameters](#parameters)).
 
 ### Salt Bridges ###
 FibMap calculates salt bridges by identifying charged residues and calculating the minimum distance between the charged regions on their sidechains. If the minimum distance between a cation and an anion is below the distance cutoff (Default: 4Å) it is counted as a salt bridge (**Figure 3**). The distance cutoff for a salt bridge can be changed from the commandline or with an input file if desired (See [Usage: calc: Parameters](#parameters)).
@@ -77,7 +77,7 @@ Determination of charged residues capable of forming salt bridges can be done ma
 
 > **Table 1:** Default residue and atom names used for the manual salt bridge group selector mode.
 
-<img align="left" src="./res/SaltBridgeAuto.png" width="100%">
+<img align="left" src="./pics/SaltBridgeAuto.png" width="100%">
 
 > **Figure 3:** Schematic showing the automatic salt bridge group determination method and distances. For lysine (left), the overall charge of the NH<sub>3</sub> group is 0.69e. Because this is the largest charge on the lysine sidechain, the NZ atom will be used as a reference point. For aspartic acid (right) the OD1 and OD2 atoms each carry a -0.76e charge. Assuming this is below the anion charge cutoff, both atoms will be used as reference points. As aspartic acid has 2 reference points and lysine has 1 reference point, two distances are computed, $D_{NZ-OD1}$ and $D_{NZ-OD2}$. At least one of these distances must be below the salt bridge distance cutoff for it to count as a salt bridge.
 
@@ -85,7 +85,7 @@ If done automatically, charged residues are identified using the atom charges in
 
 ### Pi Stacking Interactions ### 
 
-<img align="left" src="./res/PiStacking.png" width="30%">
+<img align="left" src="./pics/PiStacking.png" width="30%">
 
 > **Figure 4:** Various measures used in finding and categorizing pi stacking interactions. Based on Fig. 2 from Zhao et al. (2015) [[13]](#references).
 
@@ -93,7 +93,7 @@ To calculate pi-stacking interactions, FibMap follows the methodology developed 
 
 Any pair with $\mathrm{R_{cen}} \leq 7.2$ Å could be a pi stacking interaction, so we define its type (**Figure 5**). If $\theta \lt 30^{\circ}$ and $\delta \lt 30^{\circ}$, its a spurious interaction (not a pi stacking interaction). If $\gamma \lt 50^{\circ}$, it's a T-shaped pi stacking interaction. If $30^{\circ} \leq \gamma \leq 50^{\circ}$, it's an intermediate pi stacking interaction. If $\gamma \lt 30^{\circ}$ and either $\theta \gt 80^{\circ}$ or $\delta \gt 80^{\circ}$, its a sandwich pi stacking interaction. If $\gamma \lt 30^{\circ}$ and neither $\theta \gt 80^{\circ}$ nor $\delta \gt 80^{\circ}$, its a parallel displaced pi stacking interaction.
 
-<img align="left" src="./res/PiStackingTypes.png" width="60%">
+<img align="left" src="./pics/PiStackingTypes.png" width="60%">
 
 > **Figure 5:** The three main types of pi stacking interactions (Sandwich, T-Shaped, and Parallel Displaced). Intermediate pi stacking interactions (not shown) are between Sandwich and T-Shaped geometry. Based on Fig. 1 from Zhao et al. (2015) [[13]](#references).
 
@@ -117,7 +117,7 @@ The goal with calculating the probabilities (or average number of) a given type 
 #### Interlayer Interactions ####
 For interlayer interactions, this means that the probabilties need to be adjusted to reflect the fact that in a finite fibril model (such as the Cryo-EM structures deposited on the PDB databank), the terminal layers of the fibril are unable to form the interaction. We also have to consider that in our FibMap representation, sidechains are represented by a single point, so for some sites and types of interactions multiple interactions may occur (e.g. Arginine sidechains can form multiple hydrogen bonds). Finally, because the layers of some fibrils are 'staggered', interlayer interactions involving a given layer could occur between that layer and multiple other layers. For example, consider two sites, A and B, on a 4 layer fibril (**Figure 6**).
 
-<img align="left" src="./res/ProbsSingle.png" width="22%">
+<img align="left" src="./pics/ProbsSingle.png" width="22%">
 
 > **Figure 6:** Two interaction sites on a four layer fibril forming $\Delta \ell=1$ and $\Delta \ell=2$ interactions.
 
@@ -233,7 +233,7 @@ The `calc` subcommand is used to compute the intermolecular forces within the fi
 | `-n/--n_protofilaments int` (int $\gt$ -2)| Required | The number of protofilaments in the fibril (i.e. how many segments are in each layer of the fibril). |
 | `--omit_layers int` (int $\geq$ 0) | 0 | How many layers on each end of the fibril to omit from analysis. This is especially important for analysis of simulation trajectories of a finite fibril model as delamination at the ends of the fibril will bias the results.|
 | `--hbond_distance_cutoff float` (float $\gt$ 0) | 3.5Å | The cutoff distance (in Å) for hydrogen bonds. The distance between a potential donor and potential acceptor must be less than this value to be counted as a hydrogen bond. |
-| `--hbond_angle_cutoff float` (float $\gt$ 0) | 150$^{\circ}$ | The cutoff angle (in degrees) for hydrogen bonds. The angle from a potential donor to a potential hydrogen to a potential acceptor must be greater than this value to be counted as a hydrogen bond. |
+| `--hbond_angle_cutoff float` (float $\gt$ 0) | 150° | The cutoff angle (in degrees) for hydrogen bonds. The angle from a potential donor to a potential hydrogen to a potential acceptor must be greater than this value to be counted as a hydrogen bond. |
 | `--saltbridge_selection_mode {auto, manual}` | auto | The salt bridge participant selection mode. If auto, `--saltbridge_anion_charge_cutoff` and `--saltbridge_cation_charge_cutoff` will be used to identify potential salt bridge participants. If manual, `--saltbridge_anion_sel` and `--saltbridge_cation_sel` will be used to find the participants. |
 | `--saltbridge_anion_charge_cutoff float` | -0.5e | Used if `--saltbridge_selection_mode auto`. Charge cutoff (in e) for salt bridge participant selection. If an atom group belonging to a anionic residue has a charge less than this value, it will be considered a salt bridge participant. |
 | `--saltbridge_cation_charge_cutoff float` | -0.5e | Used if `--saltbridge_selection_mode auto`. Charge cutoff (in e) for salt bridge participant selection. If an atom group belonging to a cationic residue has a charge greater than this value, it will be considered a salt bridge participant. |
@@ -255,7 +255,7 @@ FibMap.py does not determine the relative location of each segment automatically
 predictable (proper ordering described below). If you did not originally set up your system in the described order you can try to reorder it
 using MDAnalysis.
 
-<img align="left" src="./res/topology_order.png" width="60%">
+<img align="left" src="./pics/topology_order.png" width="60%">
 
 > **Figure 7:** An example fibril showing the proper order of segments in the topology. The fibril shown is an extended version of the human Serum Amyloid A (hSAA) fibril resolved by Cryo-EM ([PDB 6MST](https://www.rcsb.org/structure/6MST)) by Liberta et al. [12].
 
@@ -433,7 +433,7 @@ The above parameters (and the additional parameters below) can be provided in an
 
 > *NOTE: See **Figure 8** below for color guide.*
 
-<img src="https://github.com/conor-b-abraham/FibMap/blob/main/res/ColorGuide.png" width="60%">
+<img src="https://github.com/conor-b-abraham/FibMap/blob/main/pics/ColorGuide.png" width="60%">
 
 > **Figure 8:** Guide to adjustable colors.
 
@@ -520,7 +520,7 @@ From the path, a polygon will be defined to go from residue to residue within ea
 A hydrophobic zipper between residues 1 to 32 on protofilament 1 and residues 1 to 32 on protofilament 2.
 
 <p align="center">
-<img src="./res/zipperregionfibmap.png" width="70%">
+<img src="./pics/zipperregionfibmap.png" width="70%">
 </p>
 
 > **Figure 9:** Example of a FibMap showing a hydrophobic zipper. This image was generated using FibMap and [PDB 6MST](https://www.rcsb.org/structure/6MST) [[12]](#references).
@@ -534,7 +534,7 @@ zipper_region = 1:1-32,2:32-1
 Two water channels encompassed by residues 22-50 of protofilament 1 and 22-50 of protofilament 2 .
 
 <p align="center">
-<img src="./res/waterregionfibmap.png" width="70%">
+<img src="./pics/waterregionfibmap.png" width="70%">
 </p>
 
 > **Figure 10:** Example of a FibMap showing two water channels. *NOTE: This image was generated using FibMap and [PDB 6MST](https://www.rcsb.org/structure/6MST) [[12]](#references)*
@@ -705,7 +705,7 @@ All of the necessary files for the following two tutorials can be found in the t
       ```
    - A figure will open showing the positions of each segment from three perspectives. Use this figure to determine the proper order of the segments. Write these down, or open the figure manually: it was saved to prepared_segment_locs.png.
     
-      <img src="./res/prepared_segment_locs.png" width="50%">
+      <img src="./pics/prepared_segment_locs.png" width="50%">
 
       > **Figure 11:** Segment location figure from correct_pdb.py for tutorial 1.
   
@@ -729,7 +729,7 @@ All of the necessary files for the following two tutorials can be found in the t
 <summary>The result should look like this:</summary>
 
 <p align="center">
-<img src="./res/Tutorial1_FibMap.png" width="100%">
+<img src="./pics/Tutorial1_FibMap.png" width="100%">
 </p>
 
 > **Figure 12:** Output for Tutorial 1.
@@ -758,7 +758,7 @@ A sample trajectory with its topology file is provided in the tutorials/tutorial
 <summary>The result should look like this:</summary>
 
 <p align="center">
-<img src="./res/Tutorial2_FibMap.png" width="100%">
+<img src="./pics/Tutorial2_FibMap.png" width="100%">
 </p>
 
 > **Figure 13:** Output for Tutorial 2.
