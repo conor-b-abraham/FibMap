@@ -324,7 +324,7 @@ def _align(mobile_fit, mobile_all, reference_fit, masses=None):
 
     return mobile_all, rmsd
 
-def _positions_mp(frame_chunks, segids, TOP, TRAJ, reference_positions, term_atom_names):
+def _positions_mp(frame_chunk, segids, TOP, TRAJ, reference_positions, term_atom_names):
     '''
     Function to parallelize mapping of fibril onto 2D plane
     '''
@@ -340,7 +340,7 @@ def _positions_mp(frame_chunks, segids, TOP, TRAJ, reference_positions, term_ato
 
     layers = [u.select_atoms(f"segid {' '.join(layer_segids)}") for layer_segids in segids]
     layerCAs = [layer.select_atoms("name CA") for layer in layers]
-    for ts in tqdm(u.trajectory, leave=False):
+    for ts in tqdm(u.trajectory[frame_chunk[0]:frame_chunk[1]], leave=False):
         for li, (layer, layerCA) in enumerate(zip(layers, layerCAs)):
             # RMSD fit layer to reference layer
             layer.positions, RMSDs[li, ts.frame] = _align(layerCA.positions, layer.positions, reference_positions)

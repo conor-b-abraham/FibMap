@@ -595,7 +595,7 @@ class SaltBridgeCalculator:
 
     def save(self, processed_file=None, unprocessed_file=None):
         '''
-        Save hydrogen bonds
+        Save salt bridges
 
         Parameters
         ----------
