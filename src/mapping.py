@@ -324,7 +324,7 @@ def _align(mobile_fit, mobile_all, reference_fit, masses=None):
 
     return mobile_all, rmsd
 
-def _positions_mp(layer_indices, segids, TOP, TRAJ, reference_positions):
+def _positions_mp(frame_chunks, segids, TOP, TRAJ, reference_positions, term_atom_names):
     '''
     Function to parallelize mapping of fibril onto 2D plane
     '''
@@ -335,30 +335,31 @@ def _positions_mp(layer_indices, segids, TOP, TRAJ, reference_positions):
     Nterm_positions = np.zeros_like(Cterm_positions)
     RMSDs = np.zeros((segids.shape[0], u.trajectory.n_frames))
 
-    for li in layer_indices:
-        sel = f"segid {' '.join(segids[li,:])}"
-        layer = u.select_atoms(sel)
-        layerCA = layer.select_atoms("name CA") # Just the alpha carbons
-        # Collect Alpha Carbon, Side Chain, C-Terminus and N-Terminus Positions
-        u.trajectory[0]
-        for ts in tqdm(u.trajectory, leave=False):
+    bbsel = f'not backbone and not name {" ".join(term_atom_names)}'
+    termsel = f'name {" ".join(term_atom_names)}'
+
+    layers = [u.select_atoms(f"segid {' '.join(layer_segids)}") for layer_segids in segids]
+    layerCAs = [layer.select_atoms("name CA") for layer in layers]
+    for ts in tqdm(u.trajectory, leave=False):
+        for li, (layer, layerCA) in enumerate(zip(layers, layerCAs)):
             # RMSD fit layer to reference layer
             layer.positions, RMSDs[li, ts.frame] = _align(layerCA.positions, layer.positions, reference_positions)
 
+            # Collect Alpha Carbon, Side Chain, C-Terminus and N-Terminus Positions
             CAp, SCp, Ctermp, Ntermp = [], [], [], []
             for segment in layer.segments:
                 CA = segment.atoms.select_atoms("name CA")
                 CAp.append(CA.positions[:, :2])
                 res_scpos = []
                 for residue in segment.residues:
-                    SC = residue.atoms.select_atoms('not name C CA N O HA HN HT1 HT2 HT3 OT1 OT2 HT2B') # Just the sidechains
+                    SC = residue.atoms.select_atoms(bbsel) # Just the sidechains
                     if SC.n_atoms != 0:
                         res_scpos.append(SC.center_of_mass()[:2])
                     else:
                         res_scpos.append([0.0, 0.0])
                 SCp.append(np.array(res_scpos))
-                Ctermp.append(segment.residues[-1].atoms.select_atoms('name OT1 OT2').center_of_mass()[:2])
-                Ntermp.append(segment.residues[0].atoms.select_atoms('name N HT1 HT2 HT3').center_of_mass()[:2])
+                Ctermp.append(segment.residues[-1].atoms.select_atoms(termsel).center_of_mass()[:2])
+                Ntermp.append(segment.residues[0].atoms.select_atoms(termsel).center_of_mass()[:2])
             CA_positions += np.array(CAp)
             SC_positions += np.array(SCp)
             Cterm_positions += np.array(Ctermp)
@@ -492,12 +493,13 @@ class FibrilMap:
         Nterm_positions = np.zeros_like(Cterm_positions)
         RMSDs = np.zeros((self.__sysinfo.structure.shape[0], self.__u.trajectory.n_frames))
         
+        if self.__nprocs > self.__u.trajectory.n_frames:
+                self.__nprocs = self.__u.trajectory.n_frames
+
         if self.__nprocs != 1:
-            if self.__nprocs > self.__sysinfo.structure.shape[0]:
-                self.__nprocs = self.__sysinfo.structure.shape[0]
-            split_layers = np.array_split(np.arange(self.__sysinfo.structure.shape[0]), self.__nprocs)
+            frame_chunks = [(chunk[0], chunk[-1]+1) for chunk in np.array_split(np.arange(self.__u.trajectory.n_frames), self.__nprocs)]
             with multiprocessing.Pool(self.__nprocs) as p:
-                mp_args = [(i, self.__sysinfo.structure, self.__top, self.__traj, reference_positions) for i in split_layers]
+                mp_args = [(i, self.__sysinfo.structure, self.__top, self.__traj, reference_positions, self.__sysinfo.terminal_atom_names) for i in frame_chunks]
                 results = p.starmap(_positions_mp, mp_args)
             p.close()
             p.join()
@@ -508,8 +510,7 @@ class FibrilMap:
                 Nterm_positions += r["NT"]
                 RMSDs += r["RMSDs"]
         else:
-            layer_inds = list(range(self.__sysinfo.structure.shape[0]))
-            results = _positions_mp(layer_inds, self.__sysinfo.structure, self.__top, self.__traj, reference_positions)
+            results = _positions_mp((None, None), self.__sysinfo.structure, self.__top, self.__traj, reference_positions, self.__sysinfo.terminal_atom_names)
             CA_positions = results['CA']
             SC_positions = results['SC']
             Cterm_positions = results['CT']
@@ -579,6 +580,28 @@ class FibrilMap:
     def _init_figure(self, ca_positions, sc_positions, ct_positions, nt_positions):
         '''
         Initialize figure of correct size
+
+        Parameters
+        ----------
+        ca_positions : numpy.ndarray(dtype=float, shape=(N_Protofilaments, N_Residues, 2))
+            Array containing the positions of the alpha carbons in Angstroms
+        sc_positions : numpy.ndarray(dtype=float, shape=(N_Protofilaments, N_Residues, 2))
+            Array containing the positions of the sidechains in Angstroms
+        nt_positions : numpy.ndarray(dtype=float, shape=(N_Protofilaments, 2))
+            Array containing the positions of the N-termini in Angstroms
+        ct_positions : numpy.ndarray(dtype=float, shape=(N_Protofilaments, 2))
+            Array containing the positions of the C-termini in Angstroms
+        
+        Returns
+        ----------
+        ca_positions : numpy.ndarray(dtype=float, shape=(N_Protofilaments, N_Residues, 2))
+            Array containing the positions of the alpha carbons in figure points
+        sc_positions : numpy.ndarray(dtype=float, shape=(N_Protofilaments, N_Residues, 2))
+            Array containing the positions of the sidechains in figure points
+        nt_positions : numpy.ndarray(dtype=float, shape=(N_Protofilaments, 2))
+            Array containing the positions of the N-termini in figure points
+        ct_positions : numpy.ndarray(dtype=float, shape=(N_Protofilaments, 2))
+            Array containing the positions of the C-termini in figure points
         '''
         # First, we need to find the bead radius: Bead radius will be 1/3 the minimum alpha-Carbon alpha-Carbon "bonded" distance
         min_bonded_dist = np.ceil(np.min([np.sqrt((np.diff(p, axis=0)**2).sum(axis=1)) for p in ca_positions]))

@@ -161,7 +161,11 @@ $P(A_i \; to \; B_i)$ and $\langle N(A_i \; to \; B_i) \rangle$ are then compute
 
 ### Residue Positions ###
 
-To determine the positions of the residues on the FibMap the positions of a central fibril layer are rotated such that the normal to their plane of best fit (as determined by singular value decomposition) is aligned with the Z-axis. All layers of the fibril at all timesteps are then RMSD-fit to this layer using the Kabsch algorithm. The mean XY-position of each alpha-carbon, sidechain center-of-mass, or terminal atom center-of-mass is then taken for each position. In the future, I may play around with various projections, but for now I figure that it's best to keep it simple. 
+To determine the positions of the residues on the FibMap the positions of a central fibril layer are rotated such that the vector defined by its longest interatomic distance is aligned with the X-Axis. The purpose of this is twofold: (1) It will orient the layer so that it is closely aligned to the XY-plane, and (2) It will orient the positions so that the FibMap is wider than it is tall (i.e. landscape orientation). All layers of the fibril at all timesteps are then RMSD-fit to this layer using the Kabsch algorithm. The mean XY-position of each alpha-carbon, sidechain center-of-mass, or terminal atom center-of-mass is then taken for each position. 
+
+> *NOTE: In the future, I may play around with various projections, but for now I figure that it's best to keep it simple.*
+>
+> *NOTE: In the future, I will add an option for a portrait orientation.*
 
 <p align="left">(<a href="#top">back to top</a>)</p>
 
