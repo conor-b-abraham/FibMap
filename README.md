@@ -112,7 +112,7 @@ At this time, the calculation of pi stacking interactions depends upon residue a
 
 The goal with calculating the probabilities (or average number of) a given type of interaction within the fibril is to have the probability reflect that of an infinite fibril. 
 
-> *NOTE: For pi stacking interactions, the processed results file will contain values for* ${P(Sandwich)}$*,* $P(T-Shaped)$*,* $P(Intermediate)$*, and* $P(Parallel \; Displaced)$*, as well as,* $P(Total)$*.* $P(Sandwich)$*,* $P(T-Shaped)$*,* $P(Intermediate)$*, and* $P(Parallel \; Displaced)$ *are computed after* $P(Total)$ *(i.e. they tell you the probability that the pi stacking interaction is of that kind IF it exists). The probability cutoff for displaying a pi stacking interaction on the FibMap is only applied to* $P(Total)$*.*
+> *NOTE: For pi stacking interactions, the processed results file will contain values for* ${P(Sandwich)}$*,* $P(T-Shaped)$*,* $P(Intermediate)$*, and* $P(Parallel \text{ } Displaced)$*, as well as,* $P(Total)$*.* $P(Sandwich)$*,* $P(T-Shaped)$*,* $P(Intermediate)$*, and* $P(Parallel \text{ } Displaced)$ *are computed after* $P(Total)$ *(i.e. they tell you the probability that the pi stacking interaction is of that kind IF it exists). The probability cutoff for displaying a pi stacking interaction on the FibMap is only applied to* $P(Total)$*.*
 
 #### Interlayer Interactions ####
 For interlayer interactions, this means that the probabilties need to be adjusted to reflect the fact that in a finite fibril model (such as the Cryo-EM structures deposited on the PDB databank), the terminal layers of the fibril are unable to form the interaction. We also have to consider that in our FibMap representation, sidechains are represented by a single point, so for some sites and types of interactions multiple interactions may occur (e.g. Arginine sidechains can form multiple hydrogen bonds). Finally, because the layers of some fibrils are 'staggered', interlayer interactions involving a given layer could occur between that layer and multiple other layers. For example, consider two sites, A and B, on a 4 layer fibril (**Figure 6**).
@@ -121,21 +121,21 @@ For interlayer interactions, this means that the probabilties need to be adjuste
 
 > **Figure 6:** Two interaction sites on a four layer fibril forming $\Delta \ell=1$ and $\Delta \ell=2$ interactions.
 
-On the FibMap, we will be representing two different interactions with the same representation, an $A_{i} \; to \; B_{i+1}$ interaction and an $A_{i} \; to \; B_{i+2}$ interaction. When calculating this probability we have to account for the fact that a maximum of 3 $A_{i} \; to \; B_{i+1}$ interactions can occur and a maximum of 2 $A_{i} \; to \; B_{i+2}$ interactions can occur. We also have to account for the fact that in the case that a single interaction does not occur, it does not necessarily change the overall probability of an $A_{i} \; to \; B_{j \neq i}$ interaction (e.g. if $A_{4} \; to \; B_{3}$ does not occur, but the probability of an $A_{i} \; to \; B_{i+2}$ is 1, then the overall probability of an $A_{i} \; to \; B_{j \neq i}$ interaction is still 1). So, the overall probability of an $A_{i} \; to \; B_{j \neq i}$ interaction at a given timestep, $f$, is given by:
+On the FibMap, we will be representing two different interactions with the same representation, an $A_{i}\text{ }to\text{ }B_{i+1}$ interaction and an $A_{i}\text{ }to\text{ }B_{i+2}$ interaction. When calculating this probability we have to account for the fact that a maximum of 3 $A_{i}\text{ }to\text{ }B_{i+1}$ interactions can occur and a maximum of 2 $A_{i}\text{ }to\text{ }B_{i+2}$ interactions can occur. We also have to account for the fact that in the case that a single interaction does not occur, it does not necessarily change the overall probability of an $A_{i}\text{ }to\text{ }B_{j \neq i}$ interaction (e.g. if $A_{4}\text{ }to\text{ }B_{3}$ does not occur, but the probability of an $A_{i}\text{ }to\text{ }B_{i+2}$ is 1, then the overall probability of an $A_{i}\text{ }to\text{ }B_{j \neq i}$ interaction is still 1). So, the overall probability of an $A_{i}\text{ }to\text{ }B_{j \neq i}$ interaction at a given timestep, $f$, is given by:
 
-$$p_{A_{i} \; to \; B_{j \neq i}}(f) = \mathrm{max} \left\lbrace p_{A_{i} \; to \; B_{i+1}}(f), \; p_{A_{i} \; to \; B_{i+2}}(f), \; p_{A_{i} \; to \; B_{i+1, i+2}}(f) \right\rbrace,$$
+$$p_{A_{i} \text{ } to \text{ } B_{j \neq i}}(f) = \mathrm{max} \left\lbrace p_{A_{i} \text{ } to \text{ } B_{i+1}}(f), \text{ } p_{A_{i} \text{ } to \text{ } B_{i+2}}(f), \text{ } p_{A_{i} \text{ } to \text{ } B_{i+1, i+2}}(f) \right\rbrace,$$
 
-where $p_{A_{i} \; to \; B_{i+1}}(f)$ is the probability that eligible sites are bound by an $A_{i} \; to \; B_{i+1}$ interaction, $p_{A_{i} \; to \; B_{i+2}}(f)$ is the probability that eligible sites are bound by an $A_{i} \; to \; B_{i+2}$ interaction, and $p_{A_{i} \; to \; B_{i+1, i+2}}(f)$ is the probability that elibile sites are bound by either an $A_{i} \; to \; B_{i+1}$ interaction or an $A_{i} \; to \; B_{i+2}$ interaction. We compute these subprobabilities by considering the number of sites involved in each interaction rather than by considering the number of interactions themselves, allowing us to extrapolate to an infinite fibril. These subprobabilities are given by:
+where $p_{A_{i} \text{ } to \text{ } B_{i+1}}(f)$ is the probability that eligible sites are bound by an $A_{i} \text{ } to \text{ } B_{i+1}$ interaction, $p_{A_{i} \text{ } to \text{ } B_{i+2}}(f)$ is the probability that eligible sites are bound by an $A_{i} \text{ } to \text{ } B_{i+2}$ interaction, and $p_{A_{i} \text{ } to \text{ } B_{i+1, i+2}}(f)$ is the probability that elibile sites are bound by either an $A_{i} \text{ } to \text{ } B_{i+1}$ interaction or an $A_{i} \text{ } to \text{ } B_{i+2}$ interaction. We compute these subprobabilities by considering the number of sites involved in each interaction rather than by considering the number of interactions themselves, allowing us to extrapolate to an infinite fibril. These subprobabilities are given by:
 
-$$p_{A_i \; to \; B_{i + \Delta \ell}}(f) = \frac{n_{s,bound}}{n_{s,eligible}},$$
+$$p_{A_i \text{ } to \text{ } B_{i + \Delta \ell}}(f) = \frac{n_{s,bound}}{n_{s,eligible}},$$
 
-where $n_{s,eligible}=2(n_{layers}-\Delta \ell)$ is the number of eligible interaction sites given the fibril model (e.g. for the above example, $n_{s,eligible}=6$ for $p_{A_{i} \; to \; B_{i+1}}(f)$, $n_{s,eligible}=4$ for $p_{A_{i} \; to \; B_{i+2}}(f)$, and $n_{s,eligible}=6$ for $p_{A_{i} \; to \; B_{i+1,i+2}}(f)$). Here, $\Delta \ell$ is the number of layers spanned by a given subtype (e.g. $\Delta \ell (A_{i} \; to \; B_{i+1}) = 1$ and $\Delta \ell (A_{i} \; to \; B_{i+2}) = 2$), or the minimum $\Delta \ell$ for the combined subprobability (e.g. $\Delta \ell (A_{i} \; to \; B_{i+1, i+2}) = 1$), and $n_{layers}$ is the total number of layers in the fibril. $n_{s, bound}$ is the number of those sites involved in a given interaction (or in either interaction for the combined subprobability). We then take the ensemble average of the overall probability at each frame for each interaction: 
+where $n_{s,eligible}=2(n_{layers}-\Delta \ell)$ is the number of eligible interaction sites given the fibril model (e.g. for the above example, $n_{s,eligible}=6$ for $p_{A_{i} \text{ } to \text{ } B_{i+1}}(f)$, $n_{s,eligible}=4$ for $p_{A_{i} \text{ } to \text{ } B_{i+2}}(f)$, and $n_{s,eligible}=6$ for $p_{A_{i} \text{ } to \text{ } B_{i+1,i+2}}(f)$). Here, $\Delta \ell$ is the number of layers spanned by a given subtype (e.g. $\Delta \ell (A_{i} \text{ } to \text{ } B_{i+1}) = 1$ and $\Delta \ell (A_{i} \text{ } to \text{ } B_{i+2}) = 2$), or the minimum $\Delta \ell$ for the combined subprobability (e.g. $\Delta \ell (A_{i} \text{ } to \text{ } B_{i+1, i+2}) = 1$), and $n_{layers}$ is the total number of layers in the fibril. $n_{s, bound}$ is the number of those sites involved in a given interaction (or in either interaction for the combined subprobability). We then take the ensemble average of the overall probability at each frame for each interaction: 
 
-$$P(A_i \; to \; B_{j\neq i})=\frac{1}{n_{f}}\sum_f^{n_f} p_{A_{i} \; to \; B_{j \neq i}}(f).$$
+$$P(A_i \text{ } to \text{ } B_{j\neq i})=\frac{1}{n_{f}}\sum_f^{n_f} p_{A_{i} \text{ } to \text{ } B_{j \neq i}}(f).$$
 
 For Hydrogen Bonds, since more than one may form between a pair of sites, you also have the option to use a average number of interactions, $\langle N_{HB} \rangle$ cutoff for the FibMap. For an individual frame, the average number of interactions for a given pair of interaction sites is given by:
 
-$$N_{A_i \; to \; B_{j\neq i}}(f) = \frac{2(n_{interactions})}{n_{s, weighted}},$$
+$$N_{A_i \text{ } to \text{ } B_{j\neq i}}(f) = \frac{2(n_{interactions})}{n_{s, weighted}},$$
 
 where, 
 
@@ -145,19 +145,19 @@ and $n_{\Delta \ell}$ is the number of subtypes for this type of interaction (e.
 
 Finally, we take the ensemble average of the overall average number of interactions for each frame:
 
-$$\langle N(A_i \; to \; B_{j\neq i}) \rangle=\frac{1}{n_{f}}\sum_f^{n_f} N_{A_{i} \; to \; B_{j \neq i}}(f).$$
+$$\langle N(A_i \text{ } to \text{ } B_{j\neq i}) \rangle=\frac{1}{n_{f}}\sum_f^{n_f} N_{A_{i} \text{ } to \text{ } B_{j \neq i}}(f).$$
 
 #### Intralayer Interactions ####
 
 For intralayer interactions, such complexity is not needed. At each frame, the probability is computed by taking the number of interacting sites and dividing it by the number of total sites:
 
-$$p_{A_i \; to \; B_i}(f) = \frac{n_{s,bound}}{n_{s}},$$
+$$p_{A_i \text{ } to \text{ } B_i}(f) = \frac{n_{s,bound}}{n_{s}},$$
 
 where $n_s=2n_{layers}$ is the total number of sites. Similarly, the number of interactions per site is given by:
 
-$$N_{A_i \; to \; B_i}(f) = \frac{2(n_{interactions})}{n_{s}}.$$
+$$N_{A_i \text{ } to \text{ } B_i}(f) = \frac{2(n_{interactions})}{n_{s}}.$$
 
-$P(A_i \; to \; B_i)$ and $\langle N(A_i \; to \; B_i) \rangle$ are then computed in the same manner as for interlayer interactions.
+$P(A_i \text{ } to \text{ } B_i)$ and $\langle N(A_i \text{ } to \text{ } B_i) \rangle$ are then computed in the same manner as for interlayer interactions.
 
 ### Residue Positions ###
 
@@ -625,7 +625,7 @@ end
 | **unprocessed_salt_bridges.npy** | A .npy file containing a NumPy array of all salt bridges calculated throughout a trajectory. This file is only written if the `--saveraw` flag is used. This is an array of floats with a row for each instance of a salt bridge. The columns contain the frame, anionic layer index (one-based), anionic protofilament index (one-based), anionic residue index (one-based), cationic layer index (one-based), cationic protofilament index (one-based), cationic residue index (one-based), and the distance between the charged groups. |
 | **processed_salt_bridges.npy** | A .npy file containing a NumPy array of each type of salt bridge and their probabilities. This is an array of floats with a row for each type of salt bridge. The columns contain the anion protofilament index (one-based), the anion residue (one-based), the cation protofilament index (one-based), the cation residue index (one-based), intralayer $P(SB)$,  and interlayer $P(SB)$. |
 | **unprocessed_pistacking_interactions.npy** | A .npy file containing a NumPy array of all pi stacking interactions calculated throughout a trajectory. This file is only written if the `--saveraw` flag is used. This is an array of floats with a row for each instance of a pi stacking interaction. The columns contain the frame, layer A index (one-based), protofilament A index (one-based), residue A index (one-based), layer B index (one-based), protofilament B index (one-based), residue B index (one-based), centroid-centroid distance, $\gamma$ angle, $\delta$ angle, $\theta$ angle, and type (0=Sandwich, 1=parallel displaced, 2=Intermediate, 3=T-shaped). |
-| **processed_pistacking_interactions.npy** | A .npy file containing a NumPy array of each type of pi stacking interaction and their probabilities. This is an array of floats with a row for each type of pi stacking interaction. The columns contain Protofilament A index (one-based), Residue A index (one-based), Protofilament B index (one-based), Residue B index (one-based), Intralayer $P(\mathrm{Total})$, Intralayer $P(\mathrm{T-Shaped})$, Intralayer $P(\mathrm{Intermediate})$, Intralayer $P(\mathrm{Sandwich})$, Intralayer $P(\mathrm{Parallel \; Displaced})$, Interlayer $P(\mathrm{Total})$, Interlayer $P(\mathrm{T-Shaped})$, Interlayer $P(\mathrm{Intermediate})$, Interlayer $P(\mathrm{Sandwich})$, Interlayer $P(\mathrm{Parallel \; Displaced})$. |
+| **processed_pistacking_interactions.npy** | A .npy file containing a NumPy array of each type of pi stacking interaction and their probabilities. This is an array of floats with a row for each type of pi stacking interaction. The columns contain Protofilament A index (one-based), Residue A index (one-based), Protofilament B index (one-based), Residue B index (one-based), Intralayer $P(\mathrm{Total})$, Intralayer $P(\mathrm{T-Shaped})$, Intralayer $P(\mathrm{Intermediate})$, Intralayer $P(\mathrm{Sandwich})$, Intralayer $P(\mathrm{Parallel \text{ } Displaced})$, Interlayer $P(\mathrm{Total})$, Interlayer $P(\mathrm{T-Shaped})$, Interlayer $P(\mathrm{Intermediate})$, Interlayer $P(\mathrm{Sandwich})$, Interlayer $P(\mathrm{Parallel \text{ } Displaced})$. |
 
 > *NOTE: The NumPy arrays within .npy files can be opened with:* `array = numpy.load(FileName)`
 </details>
