@@ -32,8 +32,8 @@ Developed by Conor B. Abraham in the Straub Group at Boston University, Departme
 - [Tutorials](#tutorials)
   - [Tutorial 1: Creating a FibMap from a PDB](#tutorial-1-creating-a-fibmap-from-a-pdb)
   - [Tutorial 2: Creating a FibMap from an MD Trajectory](#tutorial-2-creating-a-fibmap-from-an-md-trajectory)
-- [License](#license)
 - [References](#references)
+- [License](#license)
 
 ## Disclaimer ##
 
@@ -767,20 +767,6 @@ A sample trajectory with its topology file is provided in the tutorials/tutorial
 
 <p align="left">(<a href="#top">back to top</a>)</p>
 
-## License ##
-
-FibMap is distributed under the MIT license:
-
-Copyright &copy; 2023 Conor B. Abraham
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-<p align="left">(<a href="#top">back to top</a>)</p>
-
 ## References ##
 1. Fowler, D. M.; Koulov, A. V.; Alory-Jost, C.; Marks, M. S.; Balch, W. E.; Kelly, J. W. *PLoS biology* **2006**, *4*, e6. https://doi.org/10.1371/journal.pbio.0040006
 2. Sawaya, M. R.; Hughes, M. P.; Rodriguez, J. A.; Riek, R.; Eisenberg, D. S. *Cell* **2021**, *184*, 4857–4873. https://doi.org/10.1016/j.cell.2021.08.013
@@ -796,6 +782,20 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 12.  Liberta, F.; Loerch, S.; Rennegarbe, M.; Schierhorn, A.; Westermark, P.; Westermark, G. T.; Hazenberg, B. P.; Grigorieff, N.; F ̈andrich, M.; Schmidt, M. *Nature communications* **2019**, *10*, 1–10. https://doi.org/10.1038/s41467-019-09033-z
 13. Zhao, Y., Li, J., Gu, H. et al. *Interdiscip Sci Comput Life Sci* **2015**, *7*, 211–220. https://doi.org/10.1007/s12539-015-0263-z
    
+<p align="left">(<a href="#top">back to top</a>)</p>
+
+## License ##
+
+FibMap is distributed under the MIT license:
+
+Copyright &copy; 2023 Conor B. Abraham
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 <p align="left">(<a href="#top">back to top</a>)</p>
 
 <!-- MARKDOWN LINKS & IMAGES -->
