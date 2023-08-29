@@ -426,7 +426,7 @@ def auto_sb_finder(ag, charge_cutoff, findtype, sysinfo):
         if residue.resid not in checked_resids:
             rescharge = int(np.round(np.sum(residue.atoms.charges)))
             if rescharge == needed_rescharge:
-                ressc = residue.atoms.select_atoms(f"(not backbone or name {' '.join(sysinfo.terminal_atom_names)}) and not name H*") # the sidechain atoms of this residue
+                ressc = residue.atoms.select_atoms(f"(not backbone or {' or '.join(sysinfo.terminal_atom_names)}) and not name H*") # the sidechain atoms of this residue
                 groupatomnames = []
                 groupchargedict = {}
                 for heavyatom in ressc:

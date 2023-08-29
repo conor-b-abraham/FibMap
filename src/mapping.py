@@ -335,8 +335,8 @@ def _positions_mp(frame_chunk, segids, TOP, TRAJ, reference_positions, term_atom
     Nterm_positions = np.zeros_like(Cterm_positions)
     RMSDs = np.zeros((segids.shape[0], u.trajectory.n_frames))
 
-    bbsel = f'not backbone and not name {" ".join(term_atom_names)}'
-    termsel = f'name {" ".join(term_atom_names)}'
+    scsel = f'not backbone and not {" and not ".join(term_atom_names)}'
+    termsel = f'{" or ".join(term_atom_names)}'
 
     layers = [u.select_atoms(f"segid {' '.join(layer_segids)}") for layer_segids in segids]
     layerCAs = [layer.select_atoms("name CA") for layer in layers]
@@ -352,7 +352,7 @@ def _positions_mp(frame_chunk, segids, TOP, TRAJ, reference_positions, term_atom
                 CAp.append(CA.positions[:, :2])
                 res_scpos = []
                 for residue in segment.residues:
-                    SC = residue.atoms.select_atoms(bbsel) # Just the sidechains
+                    SC = residue.atoms.select_atoms(scsel) # Just the sidechains
                     if SC.n_atoms != 0:
                         res_scpos.append(SC.center_of_mass()[:2])
                     else:
@@ -689,7 +689,7 @@ class FibrilMap:
             return charge
         
         def _term_color(self, residue):
-            termatoms = residue.mdaresidue.atoms.select_atoms(f"not backbone and name {' '.join(self.__sysinfo.terminal_atom_names)}")
+            termatoms = residue.mdaresidue.atoms.select_atoms(f"{' or '.join(self.__sysinfo.terminal_atom_names)}")
             if int(np.round(np.sum(residue.mdaresidue.atoms.charges))) != 0:
                 charge = int(np.round(np.sum(termatoms.charges)))
                 if charge == 1.0:
@@ -727,7 +727,7 @@ class FibrilMap:
                              color=self.__params.backbone_color[ci%len(self.__params.backbone_color)])
             for ri, residue in enumerate(self.__u.segments[ci].residues):
                 matched_residue_name = self.__sysinfo.get_residue(residue.resid)
-                residue_color, residue_label_color = self._get_residue_colors(matched_residue_name[:3], _residue_charge(residue, residue.atoms.select_atoms(f"backbone or not name {' '.join(self.__sysinfo.terminal_atom_names)}")))
+                residue_color, residue_label_color = self._get_residue_colors(matched_residue_name[:3], _residue_charge(residue, residue.atoms.select_atoms(f"backbone or not ({' or '.join(self.__sysinfo.terminal_atom_names)})")))
                 newchain.add_residue(Residue(residue,
                                              matched_residue_name, 
                                              CA_positions[ci][ri], 

@@ -121,16 +121,18 @@ class SystemInfo:
 
             # Collect names of terminal atoms
             def _traverse(atom, collection, ignore_names):
-                if atom.name not in collection and atom.name not in ignore_names:
-                    collection.append(atom.name)
-                if atom.name in collection:
+                atomsel = f"(resname {atom.residue.resname} and name {atom.name})"
+                if atomsel not in collection and atom.name not in ignore_names:
+                    collection.append(atomsel)
+                if atomsel in collection:
                     for bond in atom.bonds:
                         for nextatom in bond.atoms:
-                            if nextatom.name != atom.name and nextatom.name not in collection and nextatom.name not in ignore_names:
+                            nextatomsel = f"(resname {nextatom.residue.resname} and name {nextatom.name})"
+                            if nextatom.name != atom.name and nextatomsel not in collection and nextatom.name not in ignore_names:
                                 collection = _traverse(nextatom, collection, ignore_names)
                 return collection
 
-            terminal_names = _traverse(terminal_bb_atom, [terminal_bb_atom.name], bbatoms)
+            terminal_names = _traverse(terminal_bb_atom, [f"(resname {terminal_bb_atom.residue.resname} and name {terminal_bb_atom.name})"], bbatoms)
             return terminal_names
 
         terminal_atom_names = []
@@ -160,8 +162,9 @@ class SystemInfo:
             term_residues.append(segment.residues[-1].resid)
 
         self.atom_info[:,3] = np.ones(ag.atoms.n_atoms) # Sidechain atoms are marked with a 1
-        self.atom_info[np.isin(ag.atoms.names, self.backbone_atom_names),3] = 0 # Backbone atoms are marked with a 0
-        self.atom_info[np.isin(ag.atoms.names, self.terminal_atom_names) & np.isin(ag.atoms.resids, np.unique(term_residues)),3] = 2 # Terminus atoms are marked with a 2 (if residue is a terminus residue)
+        agatoms = [f"(resname {atom.residue.resname} and name {atom.name})" for atom in ag.atoms]
+        self.atom_info[np.isin(agatoms, self.backbone_atom_names),3] = 0 # Backbone atoms are marked with a 0
+        self.atom_info[np.isin(agatoms, self.terminal_atom_names) & np.isin(ag.atoms.resids, np.unique(term_residues)),3] = 2 # Terminus atoms are marked with a 2 (if residue is a terminus residue)
 
     def get_residue(self, resid):
         '''
