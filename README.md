@@ -379,6 +379,7 @@ After the intermolecular forces have been computed with the `calc` subcommand, t
 | `--hbond_n_cutoff float` (float $\geq$ 0) | None | If set, the average number of hydrogen bonds per frame formed between two groups will be used to determine whether or not a hydrogen bond is shown on the figure instead of a probability cutoff. If the average number of hydrogen bonds per frame is less than this cutoff then the hydrogen bond will not be displayed on the map. |
 | `--saltbridge_p_cutoff float` (0 $\leq$ float $\leq$ 1) | None | Individually set the probability cutoff for salt bridges. If not set, p_cutoff will be used. (TIP: To hide all salt bridges, set this value to 1). |
 | `--pistacking_p_cutoff float` (0 $\leq$ float $\leq$ 1) | None | Individually set the probability cutoff for pi stacking interactions. If not set, p_cutoff will be used. (TIP: To hide all pi stacking interactions, set this value to 1). |
+| `--[no]legend` | legend | If legend, a legend will be included in the figure. |
 | `--nprocs int` (int $\geq$ -2) | 1 | How many processors to use for the position calculation. Use -1 to use all available processors, -2 to use half of the available processors, or some positive integer. |
 </details>
 
@@ -399,7 +400,6 @@ The above parameters (and the additional parameters below) can be provided in an
 |--- |--- |--- |
 | `figure_width = float` (float $\gt$ 0) | 6.5 | Figure width in inches. |
 | `figure_height = float` (float $\gt$ 0) | 4.5 | Figure height in inches. |
-| `legend = True/False` | True | Toggle whether or not to include a legend. |
 | `figure_dpi = int` | 300 | The figure resolution in dots per inch (dpi). |
 | `transparent_background = True/False` | False | Make the figure transparent |
 | `numbered_residues = True/False` | False | By default, the residues will be labelled with their 1-letter residue name abbreviation. If you use this option, they will instead be labelled with their one-based residue index. This is useful for determining shaded regions. |
