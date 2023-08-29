@@ -458,6 +458,7 @@ hbond_p_cutoff         = # Probability cutoff for hydrogen bonds (cannot be set 
 hbond_n_cutoff         = # Count cutoff for hydrogen bonds (cannot be set if hbond_p_cutoff is)
 saltbridge_p_cutoff    = # Probability cutoff for salt bridges
 pistacking_p_cutoff    = # Probability cutoff for pi stacking interactions
+legend                 = # [True/False] Whether to include a legend
 nprocs                 = # The number of processors to use
 
 # Additional Parameters
@@ -468,7 +469,6 @@ zipper_region          = # Hydrophobic Zipper Definition(s)
 # Figure Settings
 figure_width           = # Width of Figure in inches
 figure_height          = # Height of Figure in inches
-legend                 = # [True/False] Whether to include a legend
 figure_dpi             = # Figure resolution in dots per inch (dpi)
 transparent_background = # [True/False] Make background transparent
 numbered_residues      = # [True/False] Number the residues instead of labelling with 1-letter name abbreviations
@@ -485,7 +485,7 @@ nonpolar_label_color   = # Color of nonpolar residue labels
 backbone_colors        = # Color(s) of chain backbones
 hbond_color_1          = # Color of hydrogen bonds
 hbond_color_2          = # Color of dashed line for hydrogen bonds that are intra- and inter-layer
-saltbridge_color_1     =  # Fill color for salt bridges
+saltbridge_color_1     = # Fill color for salt bridges
 saltbridge_color_2     = # Outline color for salt bridges
 saltbridge_color_3     = # Color of dashed line for salt bridges that are intra- and inter-layer
 pistacking_color_1     = # Line color for pi stacking interactions
