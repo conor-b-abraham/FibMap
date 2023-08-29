@@ -642,7 +642,11 @@ class FibrilMap:
 
         # set the radius and underradius of the beads
         self.__underradius = temp_underradius*conversion_factor
-        self.__radius = self.__underradius-1
+        self.__radius = self.__underradius*0.8
+        self.__lw = self.__underradius - self.__radius
+        if self.__lw < 0.5:
+            self.__lw = 0.5
+            self.__radius = self.__underradius-0.5
 
         # Set fontsize
         mpl.rcParams['font.sans-serif'] = "Arial"
@@ -741,21 +745,21 @@ class FibrilMap:
 
         for chain in self.chains:
             # ADD LINE FOR EACH CHAIN
-            self.ax.plot(chain.ca_positions[:,0], chain.ca_positions[:,1], color=chain.color, linewidth=2, zorder=6)
+            self.ax.plot(chain.ca_positions[:,0], chain.ca_positions[:,1], color=chain.color, linewidth=self.__lw*2, zorder=6)
 
             # ADD C & N TERMINI MARKERS
             Cmarkerx, Cmarkery = _termini_marker_vector(chain.ca_positions[-1, :], chain.ct_position, self.__underradius)
             Nmarkerx, Nmarkery = _termini_marker_vector(chain.ca_positions[0, :], chain.nt_position, self.__underradius)
 
-            self.ax.plot(Cmarkerx, Cmarkery, color=chain.color, linewidth=2, solid_capstyle="butt", zorder=6) # Line to C-Terminal Marker
-            self.ax.plot(Nmarkerx, Nmarkery, color=chain.color, linewidth=2, solid_capstyle="butt", zorder=6) # Line to N-Terminal Marker
+            self.ax.plot(Cmarkerx, Cmarkery, color=chain.color, linewidth=self.__lw*2, solid_capstyle="butt", zorder=6) # Line to C-Terminal Marker
+            self.ax.plot(Nmarkerx, Nmarkery, color=chain.color, linewidth=self.__lw*2, solid_capstyle="butt", zorder=6) # Line to N-Terminal Marker
 
             chain.add_ct_position(np.array([Cmarkerx[1], Cmarkery[1]])) # Update C-terminal position to be position of marker
             chain.add_nt_position(np.array([Nmarkerx[1], Nmarkery[1]])) # Update N-terminal position to be position of marker
             self.ax.plot(chain.ct_position[0], chain.ct_position[1], markeredgecolor=chain.color, markerfacecolor=_term_color(self, chain.residues[-1]), 
-                         markersize=4, markeredgewidth=0.5, marker=(3,0,_C_termini_marker_direction(chain.ca_positions[-1, :], chain.ct_position)), zorder=6)
+                         markersize=self.__radius, markeredgewidth=self.__lw*0.5, marker=(3,0,_C_termini_marker_direction(chain.ca_positions[-1, :], chain.ct_position)), zorder=6)
             self.ax.plot(chain.nt_position[0], chain.nt_position[1], markeredgecolor=chain.color, markerfacecolor=_term_color(self, chain.residues[0]), 
-                         markersize=4, markeredgewidth=0.5, marker='o', zorder=6)
+                         markersize=self.__radius, markeredgewidth=self.__lw*0.5, marker='o', zorder=6)
 
             # ADD THE RESIDUES
             beadpatches, underbeadpatches = [], []
@@ -877,9 +881,9 @@ class FibrilMap:
         # ------------------------------------------------------------------------------
 
         if dca is None and apos is None and aca is None and dpos is not None: # Same position marker
-            self.ax.plot(dpos[0], dpos[1], marker='o', markersize=3, linestyle=None, 
+            self.ax.plot(dpos[0], dpos[1], marker='o', markersize=self.__radius*0.5, linestyle=None, 
                          markerfacecolor=self.__params.hbond_color_2, markeredgecolor=self.__params.hbond_color_1, 
-                         markeredgewidth=0.5, zorder=16)
+                         markeredgewidth=self.__lw*0.5, zorder=16)
             self.__legend_items["hbond"]["same"] = True 
 
         elif dca is not None and dpos is not None and aca is not None and apos is not None: # Regular
@@ -887,32 +891,32 @@ class FibrilMap:
             if intralayer: # Anytime there's an intralayer Hbond we draw this arrow
                 self.ax.annotate('', xy=dpos, xytext=apos, 
                                  arrowprops=dict(arrowstyle='-', fc='none', ec=self.__params.hbond_color_1, shrinkA=3, shrinkB=0, 
-                                                 linestyle="solid", linewidth=1, connectionstyle=f"arc3, rad={cdir*cmag}"), 
+                                                 linestyle="solid", linewidth=self.__lw, connectionstyle=f"arc3, rad={cdir*cmag}"), 
                                  zorder=12) # LINE
                 if interlayer: # Also interlayer
                     self.ax.annotate('', xy=dpos, xytext=apos, 
                                      arrowprops=dict(arrowstyle='-', fc='none', ec=self.__params.hbond_color_2, shrinkA=3, shrinkB=0, 
-                                                     linestyle="dashed", linewidth=0.5, connectionstyle=f"arc3, rad={cdir*cmag}"), 
+                                                     linestyle="dashed", linewidth=self.__lw*0.5, connectionstyle=f"arc3, rad={cdir*cmag}"), 
                                  zorder=12) # DASHED LINE
                     self.__legend_items["hbond"]["both"] = True 
                 self.ax.annotate('', xy=dpos, xytext=apos, 
                                  arrowprops=dict(arrowstyle='<|-', fc=self.__params.hbond_color_1, ec=self.__params.hbond_color_1, shrinkA=0, shrinkB=0, 
-                                                 linestyle='solid', mutation_scale=9, linewidth=0, connectionstyle=f"arc3, rad={cdir*cmag}"), 
+                                                 linestyle='solid', mutation_scale=self.__lw*9, linewidth=0, connectionstyle=f"arc3, rad={cdir*cmag}"), 
                                  zorder=12) # ARROWHEAD
 
             elif interlayer: # Intralayer only style (dashed)
                 self.ax.annotate('', xy=dpos, xytext=apos, 
                                  arrowprops=dict(arrowstyle='-', fc='none', ec=self.__params.hbond_color_1, shrinkA=3, shrinkB=0, 
-                                                 linestyle="dashed", linewidth=1, connectionstyle=f"arc3, rad={cdir*cmag}"),
+                                                 linestyle="dashed", linewidth=self.__lw, connectionstyle=f"arc3, rad={cdir*cmag}"),
                                  zorder=12) # LINE
                 self.ax.annotate('', xy=dpos, xytext=apos, 
                                  arrowprops=dict(arrowstyle='<|-', fc=self.__params.hbond_color_1, ec=self.__params.hbond_color_1, shrinkA=0, shrinkB=0, 
-                                                 linestyle='solid', mutation_scale=9, linewidth=0, connectionstyle=f"arc3, rad={cdir*cmag}"), 
+                                                 linestyle='solid', mutation_scale=self.__lw*9, linewidth=0, connectionstyle=f"arc3, rad={cdir*cmag}"), 
                                  zorder=12) # ARROWHEAD
 
         elif dpos is None and apos is None and dca is not None and aca is not None:
             self.ax.annotate('', xy=dca, xytext=aca, 
-                             arrowprops=dict(arrowstyle='-', fc='none', ec=self.__params.hbond_color_2, shrinkA=0, shrinkB=0, 
+                             arrowprops=dict(arrowstyle='-', fc='none', ec=self.__params.hbond_color_2, shrinkA=0, shrinkB=0, linewidth=self.__lw,
                                              linestyle="dotted", connectionstyle=f"arc3, rad=0"), 
                              zorder=6)
             self.__legend_items["hbond"]["backbone"] = True
@@ -1065,13 +1069,13 @@ class FibrilMap:
 
         patches = []
         if intralayer:
-            patches.append(PathPatch(path, facecolor=self.__params.saltbridge_color_1, edgecolor=self.__params.saltbridge_color_2, linewidth=1, linestyle="solid"))
+            patches.append(PathPatch(path, facecolor=self.__params.saltbridge_color_1, edgecolor=self.__params.saltbridge_color_2, linewidth=self.__lw, linestyle="solid"))
             if interlayer:
-                patches.append(PathPatch(path, facecolor="none", edgecolor=self.__params.saltbridge_color_3, linewidth=0.5, linestyle="dashed"))
+                patches.append(PathPatch(path, facecolor="none", edgecolor=self.__params.saltbridge_color_3, linewidth=self.__lw*0.5, linestyle="dashed"))
                 self.__legend_items["sb"]["both"] = True
         elif interlayer:
-            patches.append(PathPatch(path, facecolor=self.__params.saltbridge_color_1, edgecolor=self.__params.saltbridge_color_1, linewidth=1, linestyle="solid"))
-            patches.append(PathPatch(path, facecolor="none", edgecolor=self.__params.saltbridge_color_2, linewidth=1, linestyle="dashed"))
+            patches.append(PathPatch(path, facecolor=self.__params.saltbridge_color_1, edgecolor=self.__params.saltbridge_color_1, linewidth=self.__lw, linestyle="solid"))
+            patches.append(PathPatch(path, facecolor="none", edgecolor=self.__params.saltbridge_color_2, linewidth=self.__lw, linestyle="dashed"))
 
         self.ax.add_collection(PatchCollection(patches, match_original=True, zorder=4)) #6
         self.__legend_items["sb"]["section"] = True
@@ -1156,23 +1160,23 @@ class FibrilMap:
         if sc1 is not None and sc2 is None: # Place same residue marker
             self.ax.plot(sc1[0], sc1[1], linestyle=None, color=self.__params.pistacking_color_2, zorder=8, marker='o', 
                          markerfacecolor=self.__params.pistacking_color_2, markerfacecoloralt=self.__params.pistacking_color_2, 
-                         markeredgecolor=self.__params.pistacking_color_1, fillstyle='full', markersize=4, markeredgewidth=0.5)
+                         markeredgecolor=self.__params.pistacking_color_1, fillstyle='full', markersize=self.__radius, markeredgewidth=self.__lw*0.5)
             self.__legend_items["pipi"]["same"] = True
         elif intralayer:
             self.ax.annotate('', xy=sc1, xytext=sc2, 
                              arrowprops=dict(arrowstyle='-', fc='none', ec=self.__params.pistacking_color_1, shrinkA=0, shrinkB=0, 
-                                             linestyle="solid", linewidth=1, connectionstyle=f"arc3, rad=0"), 
+                                             linestyle="solid", linewidth=self.__lw, connectionstyle=f"arc3, rad=0"), 
                              zorder=6)
             if interlayer:
                 self.ax.annotate('', xy=sc1, xytext=sc2, 
                                  arrowprops=dict(arrowstyle='-', fc='none', ec=self.__params.pistacking_color_2, shrinkA=0, shrinkB=0, 
-                                                 linestyle="dotted", linewidth=0.5, connectionstyle=f"arc3, rad=0"), 
+                                                 linestyle="dotted", linewidth=self.__lw*0.5, connectionstyle=f"arc3, rad=0"), 
                                  zorder=6)
                 self.__legend_items["pipi"]["both"] = True
         elif interlayer:
             self.ax.annotate('', xy=sc1, xytext=sc2, 
                              arrowprops=dict(arrowstyle='-', fc='none', ec=self.__params.pistacking_color_1, shrinkA=0, shrinkB=0, 
-                                             linestyle="dotted", linewidth=1, connectionstyle=f"arc3, rad=0"), 
+                                             linestyle="dotted", linewidth=self.__lw, connectionstyle=f"arc3, rad=0"), 
                              zorder=6)
         self.__legend_items["pipi"]["section"] = True
 
@@ -1264,6 +1268,9 @@ class FibrilMap:
         starty = self.__legend_bottomleft[1]+self.__legend_dims[1]
         safe_width = self.__legend_dims[0]-20
 
+        # Also set lw to legend size
+        self.__lw = 0.75
+
         # Second, add the main components
         # Distance Indicator
         marker_pos = [np.linspace(currentx+(safe_width/2)-self.__legend_1nm/2, currentx+(safe_width/2)+self.__legend_1nm/2, 11), [currenty]*11]
@@ -1318,7 +1325,7 @@ class FibrilMap:
         
         if self.__legend_items["main"]["zipper"] or self.__legend_items["main"]["water"]:
             currenty -= 10
-
+        
         # Third, Add Hydrogen Bond information
         if self.__legend_items["hbond"]["section"]:
             currenty -= 5
@@ -1333,10 +1340,10 @@ class FibrilMap:
             self.ax.annotate("Intralayer", [currentx+((safe_width/2)-10)/2, currenty], fontsize=4, ha='center', va='center_baseline', zorder=2)
             self.ax.annotate('', xy=res1.sc_anchor, xytext=res2.sc_anchor, 
                                  arrowprops=dict(arrowstyle='-', fc='none', ec=self.__params.hbond_color_1, shrinkA=3, shrinkB=0, 
-                                                 linestyle="solid", linewidth=1, connectionstyle=f"arc3, rad=-0.15"), zorder=2) # LINE
+                                                 linestyle="solid", linewidth=self.__lw, connectionstyle=f"arc3, rad=-0.15"), zorder=2) # LINE
             self.ax.annotate('', xy=res1.sc_anchor, xytext=res2.sc_anchor, 
                                 arrowprops=dict(arrowstyle='<|-', fc=self.__params.hbond_color_1, ec=self.__params.hbond_color_1, shrinkA=0, shrinkB=0, 
-                                                linestyle='solid', mutation_scale=9, linewidth=0, connectionstyle=f"arc3, rad=-0.15"), zorder=2) # ARROWHEAD
+                                                linestyle='solid', mutation_scale=self.__lw*9, linewidth=0, connectionstyle=f"arc3, rad=-0.15"), zorder=2) # ARROWHEAD
             
             res1 = Residue(None, "", np.array([currentx+(safe_width/2)+10, currenty]), np.array([currentx+(safe_width/2)+13, currenty-2]), 2, 2.75, "black", "white", "white", legend_residue=True)
             res2 = Residue(None, "", np.array([currentx+safe_width, currenty]), np.array([currentx+safe_width-3, currenty-2]), 2, 2.75, "black", "white", "white", legend_residue=True)
@@ -1345,10 +1352,10 @@ class FibrilMap:
             self.ax.annotate("Interlayer", [currentx+((3*safe_width)/4)+5, currenty], fontsize=4, ha='center', va='center_baseline', zorder=2)
             self.ax.annotate('', xy=res1.sc_anchor, xytext=res2.sc_anchor, 
                                  arrowprops=dict(arrowstyle='-', fc='none', ec=self.__params.hbond_color_1, shrinkA=3, shrinkB=0, 
-                                                 linestyle="dashed", linewidth=1, connectionstyle=f"arc3, rad=-0.15"), zorder=2) # LINE
+                                                 linestyle="dashed", linewidth=self.__lw, connectionstyle=f"arc3, rad=-0.15"), zorder=2) # LINE
             self.ax.annotate('', xy=res1.sc_anchor, xytext=res2.sc_anchor, 
                                 arrowprops=dict(arrowstyle='<|-', fc=self.__params.hbond_color_1, ec=self.__params.hbond_color_1, shrinkA=0, shrinkB=0, 
-                                                linestyle='solid', mutation_scale=9, linewidth=0, connectionstyle=f"arc3, rad=-0.15"), zorder=2) # ARROWHEAD
+                                                linestyle='solid', mutation_scale=self.__lw*9, linewidth=0, connectionstyle=f"arc3, rad=-0.15"), zorder=2) # ARROWHEAD
             currenty -= 10
 
             if self.__legend_items["hbond"]["both"] and self.__legend_items["hbond"]["backbone"]:
@@ -1367,20 +1374,20 @@ class FibrilMap:
                 self.ax.annotate("Intra & Inter", [bothx+((safe_width/2)-10)/2, currenty], fontsize=4, ha='center', va='center_baseline', zorder=2)
                 self.ax.annotate('', xy=res1.sc_anchor, xytext=res2.sc_anchor, 
                                     arrowprops=dict(arrowstyle='-', fc='none', ec=self.__params.hbond_color_1, shrinkA=3, shrinkB=0, 
-                                                    linestyle="solid", linewidth=1, connectionstyle=f"arc3, rad=-0.15"), zorder=2) # LINE
+                                                    linestyle="solid", linewidth=self.__lw, connectionstyle=f"arc3, rad=-0.15"), zorder=2) # LINE
                 self.ax.annotate('', xy=res1.sc_anchor, xytext=res2.sc_anchor, 
                                  arrowprops=dict(arrowstyle='-', fc='none', ec=self.__params.hbond_color_2, shrinkA=3, shrinkB=0, 
-                                            linestyle="dashed", linewidth=0.5, connectionstyle=f"arc3, rad=-0.15"), zorder=2) # DASHED LINE
+                                            linestyle="dashed", linewidth=self.__lw*0.5, connectionstyle=f"arc3, rad=-0.15"), zorder=2) # DASHED LINE
                 self.ax.annotate('', xy=res1.sc_anchor, xytext=res2.sc_anchor, 
                                     arrowprops=dict(arrowstyle='<|-', fc=self.__params.hbond_color_1, ec=self.__params.hbond_color_1, shrinkA=0, shrinkB=0, 
-                                                    linestyle='solid', mutation_scale=9, linewidth=0, connectionstyle=f"arc3, rad=-0.15"), zorder=2) # ARROWHEAD
+                                                    linestyle='solid', mutation_scale=self.__lw*9, linewidth=0, connectionstyle=f"arc3, rad=-0.15"), zorder=2) # ARROWHEAD
                 
             if self.__legend_items["hbond"]["backbone"]:
                 res1 = Residue(None, "", np.array([backbonex, currenty]), np.array([backbonex, currenty-2]), 2, 2.75, "black", "white", "white", legend_residue=True)
                 res2 = Residue(None, "", np.array([backbonex+(safe_width/2)-10, currenty]), np.array([backbonex+(safe_width/2)-10, currenty-2]), 2, 2.75, "black", "white", "white", legend_residue=True)
-                self.ax.plot([res1.ca_position, res2.ca_position], [currenty]*2, color="black", linewidth=2, zorder=2)
+                self.ax.plot([res1.ca_position, res2.ca_position], [currenty]*2, color="black", linewidth=self.__lw*2, zorder=2)
                 self.ax.annotate('', xy=res1.ca_position, xytext=res2.ca_position, 
-                             arrowprops=dict(arrowstyle='-', fc='none', ec=self.__params.hbond_color_2, shrinkA=0, shrinkB=0, 
+                             arrowprops=dict(arrowstyle='-', fc='none', ec=self.__params.hbond_color_2, shrinkA=0, shrinkB=0, linewidth=self.__lw,
                                              linestyle="dashed", connectionstyle=f"arc3, rad=0"), zorder=2)
                 _legend_residue(self.ax, res1)
                 _legend_residue(self.ax, res2)
@@ -1395,9 +1402,9 @@ class FibrilMap:
                 samex = currentx + 2*safe_width/3 
                 residue = Residue(None, "", np.array([samex, currenty]), np.array([samex-3, currenty]), 2, 2.75, "black", "white", "white", legend_residue=True)
                 _legend_residue(self.ax, residue)
-                self.ax.plot(residue.sc_anchor[0], residue.sc_anchor[1], marker='o', markersize=3, linestyle=None, 
+                self.ax.plot(residue.sc_anchor[0], residue.sc_anchor[1], marker='o', markersize=self.__radius*0.5, linestyle=None, 
                              markerfacecolor=self.__params.hbond_color_2, markeredgecolor=self.__params.hbond_color_1, 
-                             markeredgewidth=0.5, zorder=16)
+                             markeredgewidth=self.__lw*0.5, zorder=16)
                 self.ax.annotate("Interlayer\n(Same Position)", [residue.sc_anchor[0]-3, currenty], fontsize=4, ha='right', va='center_baseline', zorder=2)
                 currenty -= 10
             

@@ -972,7 +972,7 @@ class Params:
         input_file : Str
             Name of input file or checkpoint file
         '''
-        used_exclusives = {"backup":False, "nobackup":False, "log": False, "nolog":False, "saveraw":False, "nosaveraw":False, "hbond_n_cutoff": False, "hbond_p_cutoff": False}
+        used_exclusives = {"backup":False, "nobackup":False, "log": False, "nolog":False, "saveraw":False, "nosaveraw":False, "hbond_n_cutoff": False, "hbond_p_cutoff": False, "legend": False, "nolegend": False}
         found_keys = []
         with open(input_file) as file:
             for li, line in enumerate(file.readlines()):
@@ -1015,6 +1015,8 @@ class Params:
             raise SystemExit(f"Parameter Error: {input_file}: Cannot set saveraw and nosaveraw at the same time.")
         if used_exclusives["hbond_n_cutoff"] and used_exclusives["hbond_p_cutoff"]:
             raise SystemExit(f"Parameter Error: {input_file}: Cannot set hbond_n_cutoff and hbond_p_cutoff at the same time.")
+        if used_exclusives["legend"] and used_exclusives["nolegend"]:
+            raise SystemExit(f"Parameter Error: {input_file}: Cannot set legend and nolegend at the same time.")
 
     def _compare_checkpoints(self):
         '''
@@ -1154,6 +1156,7 @@ class Params:
                 "figure_width":[6.5, _positive_float],
                 "figure_height":[4.5, _positive_float],
                 "legend":[True, _valid_bool],
+                "nolegend":[False, _valid_bool],
                 "figure_dpi":[300, _positive_int],
                 "acidic_color":["firebrick", _valid_color_nochain],
                 "acidic_label_color":["white", _valid_color_orchain],
@@ -1257,7 +1260,7 @@ class Params:
             del self.saltbridge_p_cutoff
             del self.pistacking_p_cutoff
         
-        # Reconcile nobackup/backup and log/nolog and saveraw/nosaveraw
+        # Reconcile nobackup/backup and log/nolog and saveraw/nosaveraw and legend/nolegend
         if self.backup == True:
             self.nobackup = False
         if self.nolog == True:
@@ -1265,6 +1268,9 @@ class Params:
         if self.command == "calc" and self.saveraw == True:
             self.nosaveraw = False
             del self.saveraw
+        if self.command =="map" and self.nolegend == True:
+            self.legend = False
+            del self.nolegend
         del self.backup
         del self.nolog
 
