@@ -420,7 +420,7 @@ class FibrilMap:
         Add salt bridges to map
     add_pipi_interactions(pipis, residues, cutoff)
         Add pipi interactions to map
-    legend()
+    make_legend()
         Add legend to map
     save(OUTDIR, show=True)
         Save fibril map image and optionally, show the image

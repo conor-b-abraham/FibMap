@@ -1289,7 +1289,8 @@ class Params:
         if self.command == "calc":
             self.output_namestem = f"calc_{self.calctype.replace('+', '-')}"
         else:
-            self.output_namestem = f"map"
+            if self.command == "map":
+                self.output_namestem = f"map"
             if not self.nobackup:
                 self.__loglines.append(file_backup(self.output_directory, self.figure_file)) # Backup Previously Made Figures
             if self.figure_file is None:
