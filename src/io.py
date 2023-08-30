@@ -10,6 +10,7 @@ import numpy as np
 from src import utils
 
 # CONTENTS:
+# Contains functions and classes related to reading/writing information
 #       file_backup: Backup files in output directory so that old files are not overwritten 
 #       Logger: Configurable custom logger to return information to console and log file
 #       ap_valid_path: For argparse - check to make sure path exists
@@ -1143,7 +1144,7 @@ class Params:
                 }}
         elif self.command == "map":
             self.__param_info = {**self.__param_info, **{
-                "figure_file":["figure.png", _notype],
+                "figure_file":[None, _notype],
                 "p_cutoff":[0.5, _nonnegative_frac],
                 "hbond_n_cutoff":[None, _nonnegative_float],
                 "hbond_p_cutoff":[None, _nonnegative_frac],
@@ -1291,7 +1292,8 @@ class Params:
             self.output_namestem = f"map"
             if not self.nobackup:
                 self.__loglines.append(file_backup(self.output_directory, self.figure_file)) # Backup Previously Made Figures
-            self.figure_file = f"{self.output_directory}/{self.figure_file}" # Update output figure file
+            if self.figure_file is None:
+                self.figure_file = f"{self.output_directory}/fibmap.png" # Update output figure file
 
         if self.log and not self.nobackup:
             self.__loglines.append(file_backup(self.output_directory, f"{self.output_namestem}.log")) # Backup Previously Made LogFiles

@@ -10,10 +10,11 @@ import os
 import multiprocessing
 from tqdm import tqdm
 
-# CONTENTS
-# Residue : Contains residue information for mapping
-# Chain : Contains chain information for mapping
-# FibrilMap : Class for constructing the fibril map
+# CONTENTS:
+# Contains classes used for creating the FibrilMap
+#       Residue : Contains residue information for mapping
+#       Chain : Contains chain information for mapping
+#       FibrilMap : Class for constructing the fibril map
 
 # ------------------------------------------------------------------------------
 # RESIDUE & CHAIN OBJECTS

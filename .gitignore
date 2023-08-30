@@ -3,3 +3,4 @@ tutorials/tutorial2/worked/.traj.xtc_offsets.lock
 tutorials/tutorial2/worked/.traj.xtc_offsets.npz
 tutorials/tutorial1/worked/charmm-gui/
 tutorials/extra/
+src/traj.py

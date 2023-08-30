@@ -5,6 +5,7 @@ import sys
 import os
 
 # CONTENTS
+# Contains utility functions/classes
 #       SystemInfo: Calculates and stores important system information for later use
 #       angle180: Calculate 180 degree angle between two vectors
 #       acute_angle: Calculate acute angle between two vectors

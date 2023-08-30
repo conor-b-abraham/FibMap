@@ -12,7 +12,8 @@ from src import utils
 
 warnings.filterwarnings("ignore", category=UserWarning) # We've already checked the files for information we need, so silence MDAnalysis UserWarnings
 
-# CONTENTS
+# CONTENTS:
+# Contains calculators for FibMap.py calc
 #       HydrogenBondCalculator: Calculates and Parses Hydrogen Bonds
 #       SaltBridgeCalculator: Calculates and Parses Salt Bridges
 #       PiStackingCalculator: Calculates and Parses Pi Stacking Interactions

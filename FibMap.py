@@ -217,8 +217,6 @@ def main():
                                                         (Type: Float, >0, Default: 6.5) Figure width in inches.
                         figure_height = FIGURE_HEIGHT
                                                         (Type: Float, >0, Default: 4.5) Figure height in inches.
-                        legend = [True/False]
-                                                        (Type: Bool, Default: True) Toggle whether or not to include a legend.
                         figure_dpi = FIGURE_DPI
                                                         (Type: Int, Default: 300) The figure resolution in dots per inch (dpi).
                         transparent_background = [True/False]
@@ -329,7 +327,7 @@ def main():
     map_output = map_parser.add_argument_group("OUTPUT")
     map_output.add_argument("-o", "--figure_file",
                             default=None, 
-                            help="(OPTIONAL, Default: fibmap.png, Type: Filename) Name of output image file"
+                            help="(OPTIONAL, Default: [output_directory]/fibmap.png, Type: Filename) Path to and name of output image file. Can be any filetype that can be written by matplotlib. If using default, [output_directory] is the output directory specified for the previous calc run."
                             )
     map_log_group = map_output.add_mutually_exclusive_group()
     map_log_group.add_argument("--log", 

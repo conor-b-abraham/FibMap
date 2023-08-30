@@ -363,7 +363,7 @@ After the intermolecular forces have been computed with the `calc` subcommand, t
 
 | Argument | Default | Description |
 |--- |--- |--- |
-| `-o/--figure_file filename` | fibmap.png | Name of output image file. Can be any filetype that can be written by matplotlib. |
+| `-o/--figure_file filename` | [output_directory]/fibmap.png | Path to and name of output image file. Can be any filetype that can be written by matplotlib. If using default, [output_directory] is the output directory specified for the previous calc run. |
 | `--[no]log` | nolog | If log, save standard output to a log file. This option is better than manually passing stdout to a file at the commandline, as it will not write progress bars to the file. |
 | `--[no]backup` | backup | If backup, past logfiles and past figure file images will be backed up. |
 | `--showfig` | False | If used, the figure image will be opened after it is saved. |
