@@ -581,7 +581,7 @@ Alternatively, you could perform the calculation step on a single frame PDB of y
 
 **This module is currently in development, so proceed with caution.**
 
-Use this subcommand to analyze the trajectory from the calc subcommand (with --saveraw) and plot the number of each type of interaction versus time. For additional help use: `FibMap.py traj -h` or `FibMap.py traj --help`.
+Use this subcommand to analyze the trajectory from the calc subcommand (with --saveraw) and plot the number of each type of interaction per layer versus time. For additional help use: `FibMap.py traj -h` or `FibMap.py traj --help`.
 
 > *NOTE: This subcommand can only be run after the `calc` subcommand with --saveraw has been completed.*
 
@@ -794,7 +794,7 @@ This .npz file will contain at least one of the following arrays:
   
    This is an array of shape ($N_{\mathrm{frames}}$, $3$). For each frame, the average number of intralayer, interlayer, and total salt bridges per layer are provided in columns 1, 2, and 3, respectively.
 
-* **HB**: Contains the number of pi stacking interactions per layer at each frame
+* **PI**: Contains the number of pi stacking interactions per layer at each frame
   
    This is an array of shape ($N_{\mathrm{frames}}$, $3$). For each frame, the average number of intralayer, interlayer, and total pi stacking interactions per layer are provided in columns 1, 2, and 3, respectively.
 
