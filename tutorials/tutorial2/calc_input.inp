@@ -1,4 +1,4 @@
-# `Fibmap.py calc` input file for Tutorial 1: Creating a FibMap from a PDB
+# `Fibmap.py calc` input file for Tutorial 2: Creating a FibMap from an MD Trajectory
 
 # Input Files
 topology_file                   = top.tpr # The name of the topology file
@@ -8,7 +8,7 @@ trajectory_file                 = traj.xtc # The name(s) for the trajectory file
 # output_directory                = Using Default (Current Working Directory)
 verbose                         = True # Being Loud
 backup                          = False # Let's not be messy
-saveraw                         = False # We won't need these
+saveraw                         = True # Needed for trajectory analysis
 log                             = True # Let's just keep it
 
 # Options

@@ -19,6 +19,7 @@ Developed by Conor B. Abraham in the Straub Group at Boston University, Departme
     - [Interlayer Interactions](#interlayer-interactions)
     - [Intralayer Interactions](#intralayer-interactions)
   - [Residue Positions](#residue-positions)
+  - [Trajectory Analysis](#trajectory-analysis)
 - [Installation](#installation)
   - [Dependencies](#dependencies)
 - [Usage](#usage)
@@ -28,6 +29,9 @@ Developed by Conor B. Abraham in the Straub Group at Boston University, Departme
   - [map](#map)
     - [Parameters](#parameters-1)
     - [Additional Help](#additional-help-1)
+  - [traj](#traj)
+    - [Parameters](#parameters-2)
+    - [Additional Help](#additional-help-2)
   - [Output Description](#output-description)
 - [Tutorials](#tutorials)
   - [Tutorial 1: Creating a FibMap from a PDB](#tutorial-1-creating-a-fibmap-from-a-pdb)
@@ -167,6 +171,10 @@ To determine the positions of the residues on the FibMap the positions of a cent
 >
 > *NOTE: In the future, I will add an option for a portrait orientation.*
 
+### Trajectory Analysis ###
+
+Coming soon!
+
 <p align="left">(<a href="#top">back to top</a>)</p>
 
 ## Installation ## 
@@ -194,11 +202,11 @@ FibMap was developed for Python 3 using the following libraries:
 
 ## Usage ##
 
-The functionality of FibMap.py is broken up into two subcommands, `calc` and `map`. Use `calc` to compute the interactions within the fibril structure, then use `map` to produce the fibril map. For more information run `python FibMap.py -h` or `python FibMap.py --help`. 
+The functionality of this program is broken up into three subcommands, `calc`, `map`, and `traj`. Use `calc` to compute interactions within the fibril structure. Then, use `map` to create the visualization and/or `traj` to perform the trajectory analysis.
 
 ### calc ###
 
-The `calc` subcommand is used to compute the intermolecular forces within the fibril. This must be completed before running the `map` subcommand. Run this subcommand with `python FibMap.py calc ...`. For additional help with this subcommand run `python FibMap.py calc -h` or `python FibMap.py calc --help`. 
+The `calc` subcommand is used to compute the intermolecular forces within the fibril. This must be completed before running the `map` subcommand or the `traj` subcommand. Run this subcommand with `python FibMap.py calc ...`. For additional help with this subcommand run `python FibMap.py calc -h` or `python FibMap.py calc --help`. 
 
 #### Parameters ####
 <details>
@@ -219,7 +227,7 @@ The `calc` subcommand is used to compute the intermolecular forces within the fi
 |--- |--- |--- |
 | `-o/--output_directory path` | Working Dir. | Directory to write files to. This directory must already exist.|
 | `-v/--verbose` | True | Pass calculated interactions to standard output. |
-| `--[no]saveraw` | saveraw | If saveraw, the unprocessed results will be saved.|
+| `--[no]saveraw` | saveraw | If saveraw, the unprocessed results will be saved. NOTE: The trajectory analysis subcommand requires these results.| 
 | `--[no]log` | nolog | If log, save standard output to a log file. This option is better than manually passing stdout to a file at the commandline, as it will not write progress bars to the file. |
 | `--[no]backup` | backup | If backup, past logfiles and checkpoint files will be backed up. |
 </details>
@@ -451,6 +459,7 @@ figure_file            = # the name of the image file to save
 verbose                = # [True/False] verbosity
 backup                 = # [True/False] make backups
 log                    = # [True/False] write a logfile
+showfig                = # [True/False] open the figure after saving
 
 # Options
 p_cutoff               = # Probability cutoff for all interactions
@@ -568,6 +577,81 @@ omit_layers = # The number of layers to omit on each end of the fibril
 Alternatively, you could perform the calculation step on a single frame PDB of your fibril (will only take a second), and then run `map` with `--p_cutoff 1.0`.
 </details>
 
+### traj ###
+
+**This module is currently in development, so proceed with caution.**
+
+Use this subcommand to analyze the trajectory from the calc subcommand (with --saveraw) and plot the number of each type of interaction versus time. For additional help use: `FibMap.py traj -h` or `FibMap.py traj --help`.
+
+> *NOTE: This subcommand can only be run after the `calc` subcommand with --saveraw has been completed.*
+
+#### Parameters ####
+
+<details>
+<summary>Input</summary>
+
+| Argument | Default | Description |
+|--- |--- |--- |
+| `-c/--checkpoint_file filename ...` | None | Checkpoint file(s) to finished calc or map job. |
+| `-i/--input_file filename` | None | Input file containing parameters for trajectory analysis job. All required commandline arguments and additional formatting parameters can alternatively be specified in this file. Arguments given at the commandline will override any of their counterparts given in this file. See **[Additional Help:](#additional-help-2) Input File Help** below for additional help. |
+</details>
+
+<details>
+<summary>Output</summary>
+
+| Argument | Default | Description |
+|--- |--- |--- |
+| `-o/--figure_file filename` | [output_directory]/fibmap.png | Path to and name of output image file. Can be any filetype that can be written by matplotlib. If using default, [output_directory] is the output directory specified for the previous calc/map run. |
+| `--[no]log` | nolog | If log, save standard output to a log file. This option is better than manually passing stdout to a file at the commandline, as it will not write progress bars to the file. |
+| `--[no]backup` | backup | If backup, past logfiles and past figure file images will be backed up. |
+| `--showfig` | False | If used, the figure image will be opened after it is saved. |
+</details>
+
+<details>
+<summary>Options</summary>
+
+> *NOTE: All colors must be valid matplotlib colors. See matplotlib [documentation](https://matplotlib.org/stable/tutorials/colors/colors.html) for options.*
+
+| Argument | Default | Description |
+|--- |--- |--- |
+| `--figure_width int` (int $\gt$ 0) | 3.5in | Set the figure width in inches. |
+| `--figure_height int` (int $\gt$ 0) | 4in | Set the figure height in inches. |
+| `--figure_dpi int` (int $\gt$ 0) | 300dpi | Set the figure resolution in dots per inch. |
+| `--hbond_color color` | black | Color of the lines on the Hydrogen Bond plot. |
+| `--saltbridge_color` | black | Color of the lines on the Salt Bridge plot. |
+| `--pistacking_color` | black | Color of the lines on the Pi Stacking Interaction plot. |
+</details>
+
+#### Additional Help ####
+<details>
+<summary>Input File Help</summary>
+
+The above parameters can be provided in an input file (specified with -i/--input_file) for the user's convenience. Only one parameter is allowed per line, separate the parameters name and the chosen value(s) with an equal-to sign (=). For flags (i.e. verbose, [no]log, [no]backup), set the value to either 'True' or 'False'. Lines may be commented out with a pound/hash/number sign (#). If a parameter can take multiple values (e.g. trajectory_file), you can either use separate entries for each value (e.g. put checkpoint_file = filename1, checkpoint_file = filename2, etc. on separate lines) or you can separate the filenames with a space in a single entry (e.g. checkpoint_file = filename1 filename2 ...). An input file template is available in README.md.
+
+Heres an input file template for the `traj` subcommand to get you started:
+```python
+# `Fibmap.py traj` input file template. Pass to -i/--input_file at commandline.
+
+# Input
+checkpoint_file        = # the name of the checkpoint file from a previous calc or map run.
+
+# Output
+figure_file            = # the name of the image file to save
+backup                 = # [True/False] make backups
+log                    = # [True/False] write a logfile
+showfig                = # [True/False] open the figure after saving
+
+# Figure Options
+figure_width           = # Width of Figure in inches
+figure_height          = # Height of Figure in inches
+figure_dpi             = # Figure resolution in dots per inch (dpi)
+hbond_color            = # Color of hydrogen bond plot lines
+saltbridge_color       = # Color of salt bridge plot lines
+pistacking_color       = # Color of pi stacking interaction plot lines
+```
+</details>
+
+
 ### Output Description ###
 
 <details>
@@ -576,13 +660,13 @@ Alternatively, you could perform the calculation step on a single frame PDB of y
 ```mermaid
 flowchart TB;
 subgraph O[Output Directory]
-  direction LR
+  direction TB
   subgraph C[calc Output Files]
-    subgraph CA[always created]
-      CAA[calc.cpt]
-    end
     subgraph CL[if --log]
       CLA[calc.log]
+    end
+    subgraph CA[always created]
+      CAA[calc.cpt]
     end
     subgraph CC[--calctype dependent]
       direction LR
@@ -592,9 +676,9 @@ subgraph O[Output Directory]
           CCSC[unprocessed_pistacking_interactions.npy]
       end
       subgraph CCA[always created for given --calctype]
-        CCSA-->CCAA[processed_hydrogen_bonds.npy]
-        CCSB-->CCAB[processed_salt_bridges.npy]
-        CCSC-->CCAC[processed_pistacking_interactions.npy]
+        CCAA[processed_hydrogen_bonds.npy]
+        CCAB[processed_salt_bridges.npy]
+        CCAC[processed_pistacking_interactions.npy]
       end
     end
   end
@@ -606,6 +690,14 @@ subgraph O[Output Directory]
     end
     subgraph ML[if --log]
       MLA[map.log]
+    end
+  end
+  subgraph T[traj Output Files]
+    subgraph TA[always created]
+      TAB[figure.png]
+    end
+    subgraph TL[if --log]
+      TLA[traj.log]
     end
   end
 end
@@ -673,6 +765,15 @@ NT = file["NT"]
 file.close() # Need to close the file
 ```
 </details>
+</details>
+
+<details>
+<summary>traj Output File Descriptions</summary>
+
+| File Name | Description |
+|--- |--- |
+| **traj.log** | A log file containing STDOUT. This file is created if the `--log` flag is used. If a file with this name already exists in the output directory this file will be backed up unless the `--nobackup` flag is used. |
+| **figure.png** | The saved figure named according to the `-o/--figure_file` argument. |
 </details>
 
 <p align="left">(<a href="#top">back to top</a>)</p>
@@ -754,16 +855,31 @@ A sample trajectory with its topology file is provided in the tutorials/tutorial
    python FibMap.py map -i map_input.inp
    ```
 
-<details>
-<summary>The result should look like this:</summary>
+    <details>
+    <summary>The result should look like this:</summary>
 
-<p align="center">
-<img src="./pics/Tutorial2_FibMap.png" width="100%">
-</p>
+    <p align="center">
+    <img src="./pics/Tutorial2_FibMap.png" width="100%">
+    </p>
 
-> **Figure 13:** Output for Tutorial 2.
+    > **Figure 13:** Map output for Tutorial 2.
 
-</details>
+    </details>
+
+3. Run the traj step of FibMap using traj_input.inp
+   ```
+   python FibMap.py traj -i traj_input.inp
+   ```
+    <details>
+    <summary>The result should look like this:</summary>
+
+    <p align="center">
+    <img src="./pics/Tutorial2_Traj.png" width="100%">
+    </p>
+
+    > **Figure 14:** Trajecotry analysis output for Tutorial 2.
+
+    </details>
 
 <p align="left">(<a href="#top">back to top</a>)</p>
 

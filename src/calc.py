@@ -192,7 +192,7 @@ class HydrogenBondCalculator:
         Raw hydrogen bond results from mdanalysis.analysis.hydrogenbonds.hbond_analysis.HydrogenBondAnalysis. Each row contains (in order) the frame, donor index, hydrogen index, acceptor index, distance, and angle of a hydrogen bond.
         See https://docs.mdanalysis.org/stable/documentation_pages/analysis/hydrogenbonds.html
     processed_results : numpy.ndarray or None
-        Processed hydrogen bond results with atom information. Each row contains (in order) the donor protofilament index (one-based), the donor residue index (one-based), the donor type (0=backone, 1=sidechain, 2=terminus), the acceptor protofilament index (one-based), the acceptor residue index (one-based), the acceptor type (0=backone, 1=sidechain, 2=terminus), Intralayer <N_H-Bonds>, Intralayer P(H-Bond), Interlayer <N_H-Bonds>, and Interlayer P(H-Bond). Populated after HydrogenBondCalculator.process() is called. 
+        Processed hydrogen bond results with atom information. Each row contains (in order) the donor protofilament index (one-based), the donor residue index (one-based), the donor type (0=backbone, 1=sidechain, 2=terminus), the acceptor protofilament index (one-based), the acceptor residue index (one-based), the acceptor type (0=backone, 1=sidechain, 2=terminus), Intralayer <N_H-Bonds>, Intralayer P(H-Bond), Interlayer <N_H-Bonds>, and Interlayer P(H-Bond). Populated after HydrogenBondCalculator.process() is called. 
     
     Methods
     -------

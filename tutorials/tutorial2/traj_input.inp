@@ -1,0 +1,11 @@
+# `Fibmap.py traj` input file for Tutorial 2: Creating a FibMap from an MD Trajectory
+
+# Input
+checkpoint_file        = calc_ALL.cpt # The checkpoint file written by calc for the last step
+
+# Output
+figure_file            = Tutorial2_Traj.png # the name of the image file to save
+backup                 = False # Let's not be messy
+log                    = True # Let's just keep it
+
+

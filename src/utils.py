@@ -164,7 +164,7 @@ class SystemInfo:
 
         self.atom_info[:,3] = np.ones(ag.atoms.n_atoms) # Sidechain atoms are marked with a 1
         agatoms = [f"(resname {atom.residue.resname} and name {atom.name})" for atom in ag.atoms]
-        self.atom_info[np.isin(agatoms, self.backbone_atom_names),3] = 0 # Backbone atoms are marked with a 0
+        self.atom_info[np.isin(ag.atoms.names, self.backbone_atom_names),3] = 0 # Backbone atoms are marked with a 0
         self.atom_info[np.isin(agatoms, self.terminal_atom_names) & np.isin(ag.atoms.resids, np.unique(term_residues)),3] = 2 # Terminus atoms are marked with a 2 (if residue is a terminus residue)
 
     def get_residue(self, resid):

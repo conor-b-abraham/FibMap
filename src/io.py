@@ -509,6 +509,27 @@ def ap_nonnegative_frac(s):
         raise argparse.ArgumentTypeError(f"Expected float between 0 and 1, got {fl}")
     return fl
 
+def ap_valid_color(s):
+    '''
+    For ArgParse: Check if value is a valid matplotlib color.
+
+    Parameters
+    ----------
+    s : Str
+        Argument from ArgParse
+    '''
+    if (s[0] == "(" and s[-1] == ")") or s[0] == "[" and s[-1] == "]":
+        s=s.replace("(","")
+        s=s.replace(")","")
+        s=s.replace("[","")
+        s=s.replace("]","")
+        s=s.replace(" ","")
+        s=s.split(",")
+    if not is_color_like(s):
+        raise argparse.ArgumentTypeError(f"Expected valid matplotlib color, got {s}")
+    
+    return s
+
 # ------------------------------------------------------------------------------
 # Params
 # ------------------------------------------------------------------------------
@@ -903,7 +924,7 @@ class Params:
             "-c":"--checkpoint_file",
             "-f":"--trajectory_file",
             "-t":"--topology_file",
-            "-o":{"calc":"--output_directory", "map":"--figure_file"}[self.command],
+            "-o":{"calc":"--output_directory", "map":"--figure_file", "traj":"--figure_file"}[self.command],
             "-n":"--n_protofilaments",
             "-v":"--verbose"
         }
@@ -1106,12 +1127,10 @@ class Params:
         self.__param_info = {
             "trajectory_file":[[None], _valid_file],
             "topology_file":["REQ", _valid_file],
-            "checkpoint_file":[{"calc":[None], "map":["REQ"]}[self.command], _valid_file],
+            "checkpoint_file":[{"calc":[None], "map":["REQ"], "traj":["REQ"]}[self.command], _valid_file],
             "n_protofilaments":["REQ", _positive_int],
             "omit_layers":[0, _nonnegative_int],
             "output_directory":[os.getcwd(), _valid_path],
-            "verbose":[True, _valid_bool],
-            "nprocs":[1, _valid_cpu_int], 
             "log":[False, _valid_bool],
             "nolog":[True, _valid_bool],
             "nobackup":[False, _valid_bool],
@@ -1124,6 +1143,19 @@ class Params:
             "pi_unprocessed_file":[None, _valid_file],
             "map_positions_file":[None, _valid_file]
         }
+        if self.command == "map" or self.command == "calc":
+            self.__param_info = {**self.__param_info, **{
+                "verbose":[True, _valid_bool],
+                "nprocs":[1, _valid_cpu_int], 
+            }}
+        if self.command == "map" or self.command == "traj":
+            self.__param_info = {**self.__param_info, **{
+                "figure_file":[None, _notype],
+                "figure_width":[{"map":6.5, "traj":3.5}[self.command], _positive_float],
+                "figure_height":[{"map":4.5, "traj":4}[self.command], _positive_float],
+                "figure_dpi":[300, _positive_int],
+                "showfig":[False, _valid_bool]
+            }}
         if self.command == "calc":
             self.__param_info = {**self.__param_info, **{
                 "nosaveraw":[False, _valid_bool],
@@ -1144,7 +1176,6 @@ class Params:
                 }}
         elif self.command == "map":
             self.__param_info = {**self.__param_info, **{
-                "figure_file":[None, _notype],
                 "p_cutoff":[0.5, _nonnegative_frac],
                 "hbond_n_cutoff":[None, _nonnegative_float],
                 "hbond_p_cutoff":[None, _nonnegative_frac],
@@ -1154,11 +1185,8 @@ class Params:
                 "numbered_residues":[False, _valid_bool],
                 "water_region":[[None], _valid_regions],
                 "zipper_region":[[None], _valid_regions],
-                "figure_width":[6.5, _positive_float],
-                "figure_height":[4.5, _positive_float],
                 "legend":[True, _valid_bool],
                 "nolegend":[False, _valid_bool],
-                "figure_dpi":[300, _positive_int],
                 "acidic_color":["firebrick", _valid_color_nochain],
                 "acidic_label_color":["white", _valid_color_orchain],
                 "basic_color":["steelblue", _valid_color_nochain],
@@ -1179,7 +1207,12 @@ class Params:
                 "water_opacity":[0.5, _positive_float],
                 "zipper_color":["tan", _valid_color_nochain],
                 "zipper_opacity":[0.5, _positive_float],
-                "showfig":[False, _valid_bool]
+            }}
+        elif self.command == "traj":
+            self.__param_info = {**self.__param_info, **{
+                "hbond_color":["black", _valid_color_nochain],
+                "saltbridge_color":["black", _valid_color_nochain],
+                "pistacking_color":["black", _valid_color_nochain],
             }}
         
         # Collect critical arguments from commandline
@@ -1239,6 +1272,8 @@ class Params:
             raise SystemExit(f"Error: parameter topology_file: Topology file, {self.topology_file}, is missing required bond information.")
         if not hasattr(u.residues, 'segids') or u.select_atoms("protein").segments.n_segments == 1:
             raise SystemExit(f"Error: parameter topology_file: Topology file, {self.topology_file}, either only contains one segment or does not contain segids.")
+        if self.command == "traj" and u.trajectory.n_frames == 1:
+            raise SystemExit(f"Error: parameter topology_file/trajectory_file: Only one frame {self.topology_file} was found. The traj module requires a trajectory with multiple frames.")
         
         # Reconcile cutoff parameters
         if self.command == "map":
@@ -1289,12 +1324,14 @@ class Params:
         if self.command == "calc":
             self.output_namestem = f"calc_{self.calctype.replace('+', '-')}"
         else:
-            if self.command == "map":
-                self.output_namestem = f"map"
+            self.output_namestem = self.command
             if not self.nobackup:
                 self.__loglines.append(file_backup(self.output_directory, self.figure_file)) # Backup Previously Made Figures
             if self.figure_file is None:
-                self.figure_file = f"{self.output_directory}/fibmap.png" # Update output figure file
+                if self.command == "map":
+                    self.figure_file = f"{self.output_directory}/fibmap.png" # Update output figure file
+                elif self.command == "traj":
+                    self.figure_file = f"{self.output_directory}/traj.png" # Update output figure file
 
         if self.log and not self.nobackup:
             self.__loglines.append(file_backup(self.output_directory, f"{self.output_namestem}.log")) # Backup Previously Made LogFiles
@@ -1304,12 +1341,17 @@ class Params:
         else:
             self.output_log = None
         del self.log
-        self.output_cpt = f"{self.output_namestem}.cpt"
+        if self.command != "traj":
+            self.output_cpt = f"{self.output_namestem}.cpt"
+
+        # Make sure there is data to analyze for traj
+        if self.command == "traj" and self.hb_unprocessed_file is None and self.sb_unprocessed_file is None and self.pi_unprocessed_file is None:
+            raise SystemExit("Error: No unprocessed interaction files were found. Make sure to use --saveraw when running FibMap.py calc.")
 
         # Write Starting State Checkpoint File
         if self.command == "calc" and self.checkpoint_file is not None and type(self.checkpoint_file) != list:
             self.output_cpt = self.checkpoint_file
-        else:
+        elif self.command != "traj":
             with open(self.output_cpt, "w+") as cpt:
                 cpt.write(f"# Created checkpoint file on {datetime.now().strftime('%d/%m/%Y at %H:%M:%S')}\n")
                 if type(self.trajectory_file) == str:
@@ -1343,7 +1385,7 @@ class Params:
             "Figure Options":["figure_width","figure_height","legend","figure_dpi","transparent_background","numbered_residues"],
             "Regions": ["water_region","zipper_region"],
             "Cutoffs": ["p_cutoff","hbond_n_cutoff","hbond_p_cutoff","saltbridge_p_cutoff","pistacking_p_cutoff"],
-            "Colors": ["acidic_color","acidic_label_color","basic_color","basic_label_color","polar_color","polar_label_color","nonpolar_color","nonpolar_label_color","backbone_color","hbond_color_1","hbond_color_2","saltbridge_color_1","saltbridge_color_2","saltbridge_color_3","pistacking_color_1","pistacking_color_2","water_color","water_opacity","zipper_color","zipper_opacity"]}
+            "Colors": ["acidic_color","acidic_label_color","basic_color","basic_label_color","polar_color","polar_label_color","nonpolar_color","nonpolar_label_color","backbone_color","hbond_color_1","hbond_color_2","saltbridge_color_1","saltbridge_color_2","saltbridge_color_3","pistacking_color_1","pistacking_color_2","water_color","water_opacity","zipper_color","zipper_opacity","hbond_color", "saltbridge_color", "pistacking_color"]}
         
         return_string = f"  - command: {self.command}\n"
         for section, params in types.items():

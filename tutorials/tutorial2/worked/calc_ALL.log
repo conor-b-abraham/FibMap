@@ -29,8 +29,7 @@ Input
     - map_positions_file: None
 Output
     - output_directory: .
-    - nosaveraw: True
-    - saveraw: False
+    - nosaveraw: False
     - verbose: True
     - nprocs: 1
     - nobackup: True
@@ -60,7 +59,7 @@ Protofilament 2: seg_5_P23 seg_7_P24 seg_9_P25 seg_11_P26 seg_13_P27 seg_15_P28 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 HYDROGEN BONDS:
 Calculating Hydrogen Bonds
-~ Hydrogen bonds were already calculated and stored in None
+~ Unprocessed Hydrogen Bonds saved to unprocessed_hydrogen_bonds.npy
 Processing hydrogen bonds
 ~ Processed hydrogen bonds saved to processed_hydrogen_bonds.npy
                                   INTRALAYER                INTERLAYER
@@ -161,7 +160,7 @@ Processing hydrogen bonds
   2-VAL51-BB  2-GLY50-BB       0.000       0.000         0.786       0.786
   2-TRP52-BB  2-VAL51-BB       0.000       0.000         0.929       0.929
   2-ALA53-BB  2-TRP52-BB       0.000       0.000         0.786       0.786
-   2-ALA54-T  2-ALA53-BB       0.000       0.000         0.714       0.714
+  2-ALA54-BB  2-ALA53-BB       0.000       0.000         0.714       0.714
 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 SALT BRIDGES:
@@ -175,7 +174,7 @@ CATIONS: RESNAME   ATOM NAMES
            LYS   NZ
 
 Calculating Salt Bridges
-~ Salt bridges were already calculated and stored in None
+~ Unprocessed salt bridges saved to unprocessed_salt_bridges.npy
 Parsing salt bridges
 ~ Processed salt bridges saved to processed_salt_bridges.npy
      ANION       CATION   Intralayer P(SB)   Interlayer P(SB)
@@ -195,7 +194,7 @@ Parsing salt bridges
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 PI STACKING INTERACTIONS:
 Calculating Pi Stacking Interactions
-~ Pi stacking interactions were already calculated and stored in None
+~ Unprocessed pi interactions saved to unprocessed_pistacking_interactions.npy
 ~ Processed pi interactions saved to processed_pistacking_interactions.npy
                                 Intralayer Probabilities               Interlayer Probabilities
    RESIDUE-A   RESIDUE-B    Total    T      I      S      D       Total    T      I      S      D

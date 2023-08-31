@@ -1,0 +1,56 @@
+
+╔════════════════════════════════════════════════════╗
+║ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ ║
+║ ░░███████╗██╗██████╗░███╗░░░███╗░█████╗░██████╗░░░ ║
+║ ░░██╔════╝██║██╔══██╗████╗░████║██╔══██╗██╔══██╗░░ ║
+║ ░░█████╗░░██║██████╦╝██╔████╔██║███████║██████╔╝░░ ║
+║ ░░██╔══╝░░██║██╔══██╗██║╚██╔╝██║██╔══██║██╔═══╝░░░ ║
+║ ░░██║░░░░░██║██████╦╝██║░╚═╝░██║██║░░██║██║░░░░░░░ ║
+║ ░░╚═╝░░░░░╚═╝╚═════╝░╚═╝░░░░░╚═╝╚═╝░░╚═╝╚═╝░░░░░░░ ║
+║ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ ║
+╚════════════════════════════════════════════════════╝
+Calculates and visualizes key intrafibril interactions within an amyloid fibril.
+
+Created by Conor B. Abraham in the Straub Group at Boston University
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+PARAMETERS:
+    - command: traj
+Input
+    - trajectory_file: traj.xtc
+    - topology_file: top.tpr
+    - checkpoint_file: calc_ALL.cpt
+    - hb_processed_file: processed_hydrogen_bonds.npy
+    - hb_unprocessed_file: unprocessed_hydrogen_bonds.npy
+    - sb_processed_file: processed_salt_bridges.npy
+    - sb_unprocessed_file: unprocessed_salt_bridges.npy
+    - pi_processed_file: processed_pistacking_interactions.npy
+    - pi_unprocessed_file: unprocessed_pistacking_interactions.npy
+    - map_positions_file: None
+Output
+    - output_directory: .
+    - nobackup: True
+    - figure_file: Tutorial1_Traj.png
+    - showfig: True
+    - output_log: traj.log
+Options
+    - n_protofilaments: 2
+    - omit_layers: 2
+Figure Options
+    - figure_width: 3.5
+    - figure_height: 4.0
+    - figure_dpi: 300
+Colors
+    - hbond_color: black
+    - saltbridge_color: black
+    - pistacking_color: black
+
+
+
+SEGMENTS TO BE ANALYZED:
+Protofilament 1: seg_4_P13 seg_6_P14 seg_8_P15 seg_10_P16 seg_12_P17 seg_14_P18 seg_16_P19 seg_18_P110
+Protofilament 2: seg_5_P23 seg_7_P24 seg_9_P25 seg_11_P26 seg_13_P27 seg_15_P28 seg_17_P29 seg_19_P210
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+PERFORMING TRAJECTORY ANALYSIS:
+~ Trajectory analysis figure saved to Tutorial1_Traj.png

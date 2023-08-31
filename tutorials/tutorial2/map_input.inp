@@ -1,4 +1,4 @@
-# `Fibmap.py map` input file for Tutorial 1: Creating a FibMap from a PDB
+# `Fibmap.py map` input file for Tutorial 2: Creating a FibMap from an MD Trajectory
 
 # Input
 checkpoint_file        = calc_ALL.cpt # The checkpoint file written by calc for the last step

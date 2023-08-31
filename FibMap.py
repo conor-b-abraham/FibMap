@@ -11,6 +11,7 @@ from src import io
 from src import calc
 from src import utils
 from src import mapping
+from src import traj
 
 
 def main():
@@ -24,12 +25,12 @@ def main():
     # ------------------------------------------------------------------------------
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=LOG.get_title()+LOG.output_formatter(f"\n\nThis program was written to compute and visualize the hydrogen bonds, salt bridges, and pistacking interactions within an amyloid fibril from either a PDB file or a molecular dynamics trajectory. To use it, first compute the interactions using FibMap.py calc and then create the visualization with FibMap.py map. For more thorough usage and tutorials please check the github repo: {github_link}")
+        description=LOG.get_title()+LOG.output_formatter(f"\n\nThis program was written to compute and visualize the hydrogen bonds, salt bridges, and pistacking interactions within an amyloid fibril from either a PDB file or a molecular dynamics trajectory. To use it, first compute the interactions using FibMap.py calc and then create the visualization with FibMap.py map. You can also perform additional trajectory analysis with FibMap.py traj. For more thorough usage and tutorials please check the github repo: {github_link}")
         )
     parser._optionals.title = 'HELP'
     subparsers = parser.add_subparsers(
                     title="SUBCOMMANDS",
-                    description=LOG.output_formatter("The functionality of this program is broken up into two subcommands, calc and map. Use calc to compute interactions within the fibril structure. Then, use map to create the visualization."),
+                    description=LOG.output_formatter("The functionality of this program is broken up into three subcommands, calc, map, and traj. Use calc to compute interactions within the fibril structure. Then, use map to create the visualization and/or traj to perform the trajectory analysis."),
                     help="Valid subcommands are calc and map.", 
                     dest="command", 
                     required=True
@@ -71,7 +72,7 @@ def main():
     calc_inputs.add_argument("-i", "--input_file",
                             type=io.ap_valid_file,
                             default=None, 
-                            help='(OPTIONAL, Default=None, Type: Filename) Input file containing parameters for calculation job. All commandline arguments can be specified in this file for user convenience. Any parameters given at the commandline will override their counterpart in this file. See I. INPUT FILE below for additional help.'
+                            help='(OPTIONAL, Default: None, Type: Filename) Input file containing parameters for calculation job. All commandline arguments can be specified in this file for user convenience. Any parameters given at the commandline will override their counterpart in this file. See I. INPUT FILE below for additional help.'
                             ) 
     calc_inputs.add_argument("-c", "--checkpoint_file",
                             type=io.ap_valid_file,
@@ -83,7 +84,7 @@ def main():
                             type=io.ap_valid_file,
                             default=None,
                             nargs='+',
-                            help='(OPTIONAL, Type: Filename) Trajectory file(s) containing coordinate information (e.g. XTC, TRR, PDB). If multiple are provided, the systems must match exactly. If none is provided, the coordinates will be collected from the topology file. See https://userguide.mdanalysis.org/stable/formats/index.html for valid file formats.'
+                            help='(OPTIONAL, Default: None, Type: Filename) Trajectory file(s) containing coordinate information (e.g. XTC, TRR, PDB). If multiple are provided, the systems must match exactly. If none is provided, the coordinates will be collected from the topology file. See https://userguide.mdanalysis.org/stable/formats/index.html for valid file formats.'
                             )
     calc_inputs.add_argument("-t", "--topology_file", 
                             type=io.ap_valid_file,
@@ -99,33 +100,33 @@ def main():
     calc_raw_group = calc_output.add_mutually_exclusive_group()
     calc_raw_group.add_argument("--saveraw", 
                                 action="store_true",
-                                help='(OPTIONAL, Default=saveraw) If used, the unprocessed results will be saved.'
+                                help='(OPTIONAL, Default: saveraw) If used, the unprocessed results will be saved. NOTE: The trajectory analysis subcommand requires these results.'
                                 )
     calc_raw_group.add_argument("--nosaveraw", 
                                 action="store_true",
-                                help='(OPTIONAL, Default=saveraw) If used, the unprocessed results will not be saved.'
+                                help='(OPTIONAL, Default: saveraw) If used, the unprocessed results will not be saved. NOTE: The trajectory analysis subcommand requires these results.'
                                 )
     calc_output.add_argument("-v", "--verbose", 
                             action="store_true",
-                            help="(OPTIONAL, Default=False) If used, intermolecular forces will be passed to standard output."
+                            help="(OPTIONAL, Default: False) If used, intermolecular forces will be passed to standard output."
                             ) # Commandline
     calc_log_group = calc_output.add_mutually_exclusive_group()
     calc_log_group.add_argument("--log", 
                                 action="store_true",
-                                help="(OPTIONAL, Default=nolog) If used, write standard output to logfile. This option is better than manually passing stdout to a file at the commandline, as it will not write progress bars to the file."
+                                help="(OPTIONAL, Default: nolog) If used, write standard output to logfile. This option is better than manually passing stdout to a file at the commandline, as it will not write progress bars to the file."
                                 )
     calc_log_group.add_argument("--nolog", 
                                 action="store_true",
-                                help="(OPTIONAL, Default=nolog) If used, don't write standard output to logfile."
+                                help="(OPTIONAL, Default: nolog) If used, don't write standard output to logfile."
                                 )
     calc_backup_group = calc_output.add_mutually_exclusive_group()
     calc_backup_group.add_argument("--backup", 
                                    action="store_true",
-                                   help="(OPTIONAL, Default=backup) If used, past logfiles will be backed up."
+                                   help="(OPTIONAL, Default: backup) If used, past logfiles will be backed up."
                                    ) 
     calc_backup_group.add_argument("--nobackup", 
                                 action="store_true",
-                                help="(OPTIONAL, Default=backup) If used, past logfiles will not be backed up."
+                                help="(OPTIONAL, Default: backup) If used, past logfiles will not be backed up."
                                 ) 
     calc_options = calc_parser.add_argument_group("OPTIONS")
     calc_options.add_argument("--calctype",  
@@ -322,7 +323,7 @@ def main():
     map_inputs.add_argument("-i", "--input_file",
                             type=io.ap_valid_file, 
                             default=None, 
-                            help='(OPTIONAL, Default=None, Type: Filename) Input file containing parameters for mapping job. All required commandline arguments and additional formatting parameters can alternatively be specified in this file. Arguments given at the commandline will override any of their counterparts given in this file. See I. INPUT FILE below for a list of parameters that can be set in this file.'
+                            help='(OPTIONAL, Default: None, Type: Filename) Input file containing parameters for mapping job. All required commandline arguments and additional formatting parameters can alternatively be specified in this file. Arguments given at the commandline will override any of their counterparts given in this file. See I. INPUT FILE below for a list of parameters that can be set in this file.'
                             )
     map_output = map_parser.add_argument_group("OUTPUT")
     map_output.add_argument("-o", "--figure_file",
@@ -332,20 +333,20 @@ def main():
     map_log_group = map_output.add_mutually_exclusive_group()
     map_log_group.add_argument("--log", 
                                action="store_true",
-                               help="(OPTIONAL, Default=nolog) If used, write standard output to logfile for future inspection. This option is better than manually passing stdout to a file at the commandline, as it will not write progress bars to the file."
+                               help="(OPTIONAL, Default: nolog) If used, write standard output to logfile for future inspection. This option is better than manually passing stdout to a file at the commandline, as it will not write progress bars to the file."
                                )
     map_log_group.add_argument("--nolog", 
                                action="store_true",
-                               help="(OPTIONAL, Default=log) If used, don't write standard output to logfile for future inspection."
+                               help="(OPTIONAL, Default: nolog) If used, don't write standard output to logfile for future inspection."
                                )
     map_backup_group = map_output.add_mutually_exclusive_group()
     map_backup_group.add_argument("--backup", 
                                   action="store_true",
-                                  help="(OPTIONAL, Default=backup) If used, past logfiles and past figure file images will be backed up."
+                                  help="(OPTIONAL, Default: backup) If used, past logfiles and past figure file images will be backed up."
                                   )
     map_backup_group.add_argument("--nobackup", 
                                   action="store_true",
-                                  help="(OPTIONAL, Default=backup) If used, neither past logfiles nor past figure file images will be backed up."
+                                  help="(OPTIONAL, Default: backup) If used, neither past logfiles nor past figure file images will be backed up."
                                   )
     map_output.add_argument("--showfig", 
                             action="store_true",
@@ -380,11 +381,11 @@ def main():
     map_legend_group = map_output.add_mutually_exclusive_group()
     map_legend_group.add_argument("--legend", 
                                   action="store_true",
-                                  help="(OPTIONAL, Default=legend) If used, a legend will be included in the figure."
+                                  help="(OPTIONAL, Default: legend) If used, a legend will be included in the figure."
                                   )
     map_legend_group.add_argument("--nolegend", 
                                   action="store_true",
-                                  help="(OPTIONAL, Default=legend) If used, a legend will not be included in the figure."
+                                  help="(OPTIONAL, Default: legend) If used, a legend will not be included in the figure."
                                   )
     map_options.add_argument("--nprocs", 
                             type=io.ap_cpu_int, # must be -1, -2, or positive integer
@@ -392,6 +393,82 @@ def main():
                             help="(OPTIONAL, Default: 1) How many processors to use for residue positions calculation. Use -1 to use all available processors, -2 to use half of the available processors, or some positive integer."
                             ) 
 
+    traj_parser = subparsers.add_parser("traj", 
+                    formatter_class=argparse.RawDescriptionHelpFormatter,
+                    help=LOG.output_formatter("Uses results from FibMap.py calc (with --saveraw) for trajectory analysis. For additional help use: FibMap.py traj -h or FibMap.py traj --help"),
+                    description=LOG.get_title()+LOG.output_formatter(f"\n\nUse this subcommand to analyze the trajectory from the calc subcommand (with --saveraw) and plot the number of each type of interaction versus time. For more thorough usage and tutorials please check the github repo: {github_link}"),
+                    epilog=LOG.output_formatter(textwrap.dedent(f"""
+                        ADDITIONAL HELP
+                        I. INPUT FILE:
+                        The above parameters can be provided in an input file (specified with -i/--input_file) for the user's convenience. Only one parameter is allowed per line, separate the parameters name and the chosen value(s) with an equal-to sign (=). For flags (i.e. verbose, [no]log, [no]backup), set the value to either 'True' or 'False'. Lines may be commented out with a pound/hash/number sign (#). If a parameter can take multiple values (e.g. trajectory_file), you can either use separate entries for each value (e.g. put checkpoint_file = filename1, checkpoint_file = filename2, etc. on separate lines) or you can separate the filenames with a space in a single entry (e.g. checkpoint_file = filename1 filename2 ...). An input file template is available in README.md.
+                        """), smarttabs=True)
+        )
+    traj_parser._optionals.title = 'HELP'
+    traj_inputs = traj_parser.add_argument_group("INPUT FILES")
+    traj_inputs.add_argument("-c", "--checkpoint_file",
+                            type=io.ap_valid_file,
+                            nargs="+",
+                            default=None, 
+                            help='(REQUIRED, Type: Filename) Checkpoint file(s) to finished calc or map job.'
+                            )
+    traj_inputs.add_argument("-i", "--input_file",
+                            type=io.ap_valid_file, 
+                            default=None, 
+                            help='(OPTIONAL, Default: None, Type: Filename) Input file containing parameters for trajectory analysis job. All required commandline arguments and additional formatting parameters can alternatively be specified in this file. Arguments given at the commandline will override any of their counterparts given in this file. See I. INPUT FILE below for additional help.'
+                            )
+    traj_output = traj_parser.add_argument_group("OUTPUT")
+    traj_output.add_argument("-o", "--figure_file",
+                            default=None, 
+                            help="(OPTIONAL, Default: [output_directory]/traj.png, Type: Filename) Path to and name of output image file. Can be any filetype that can be written by matplotlib. If using default, [output_directory] is the output directory specified for the previous calc/map run."
+                            )
+    traj_log_group = traj_output.add_mutually_exclusive_group()
+    traj_log_group.add_argument("--log", 
+                               action="store_true",
+                               help="(OPTIONAL, Default: nolog) If used, write standard output to logfile for future inspection. This option is better than manually passing stdout to a file at the commandline, as it will not write progress bars to the file."
+                               )
+    traj_log_group.add_argument("--nolog", 
+                               action="store_true",
+                               help="(OPTIONAL, Default: nolog) If used, don't write standard output to logfile for future inspection."
+                               )
+    traj_backup_group = traj_output.add_mutually_exclusive_group()
+    traj_backup_group.add_argument("--backup", 
+                                  action="store_true",
+                                  help="(OPTIONAL, Default: backup) If used, past logfiles and past figure file images will be backed up."
+                                  )
+    traj_backup_group.add_argument("--nobackup", 
+                                  action="store_true",
+                                  help="(OPTIONAL, Default: backup) If used, neither past logfiles nor past figure file images will be backed up."
+                                  )
+    traj_output.add_argument("--showfig", 
+                            action="store_true",
+                            help="(OPTIONAL) If used, the figure image will be opened after it is saved."
+                            )
+    traj_figopts = traj_parser.add_argument_group("FIGURE OPTIONS", description="* All colors must be valid matplotlib colors. See matplotlib documentation for options: https://matplotlib.org/stable/tutorials/colors/colors.html")
+    traj_figopts.add_argument("--figure_width", 
+                              type=io.ap_positive_float,
+                              default=3.5, 
+                              help="(OPTIONAL, Default: 3.5in, Type: float > 0) Set the figure width in inches.")
+    traj_figopts.add_argument("--figure_height",
+                              type=io.ap_positive_float,
+                              default=4, 
+                              help="(OPTIONAL, Default: 4in, Type: float > 0) Set the figure height in inches.")
+    traj_figopts.add_argument("--figure_dpi",
+                              type=io.ap_positive_int,
+                              default=300, 
+                              help="(OPTIONAL, Default: 300dpi, Type: float > 0) Set the figure resolution in dots per inch.")
+    traj_figopts.add_argument("--hbond_color",
+                              type=io.ap_valid_color, 
+                              default="black",
+                              help="(OPTIONAL, Default: black, Type: MatPlotLib Color) Color of the lines on the Hydrogen Bond plot.")
+    traj_figopts.add_argument("--saltbridge_color",
+                              type=io.ap_valid_color, 
+                              default="black",
+                              help="(OPTIONAL, Default: black, Type: MatPlotLib Color) Color of the lines on the Salt Bridge plot.")
+    traj_figopts.add_argument("--pistacking_color",
+                              type=io.ap_valid_color, 
+                              default="black",
+                              help="(OPTIONAL, Default: black, Type: MatPlotLib Color) Color of the lines on the Pi Stacking Interaction plot.")
+    
     args = parser.parse_args()
 
     params = io.Params(args, sys.argv)
@@ -593,6 +670,28 @@ def main():
         fmap.save()
         LOG.header("COMPLETE")
         LOG.bullet(f"Fibril Map saved to {params.figure_file}")
+
+    # ------------------------------------------------------------------------------
+    # MAIN : TRAJECTORY ANALYSIS
+    # ------------------------------------------------------------------------------
+    if params.command == 'traj':
+        LOG.header("PERFORMING TRAJECTORY ANALYSIS")
+
+        trajana = traj.TrajectoryAnalysis(SYSTEMINFO, params)
+        if params.hb_unprocessed_file is not None:
+            results = np.load(params.hb_unprocessed_file)[:,:4].astype(int)
+            trajana.add_interaction_type(frames=results[:,0], layer_a=SYSTEMINFO.atom_info[results[:,1],0], layer_b=SYSTEMINFO.atom_info[results[:,3],0], typename="HB")
+
+        if params.sb_unprocessed_file is not None:
+            results = np.load(params.sb_unprocessed_file)
+            trajana.add_interaction_type(frames=results[:,0], layer_a=results[:,1], layer_b=results[:,5], typename="SB")
+
+        if params.pi_unprocessed_file is not None:
+            results = np.load(params.pi_unprocessed_file)
+            trajana.add_interaction_type(frames=results[:,0], layer_a=results[:,1], layer_b=results[:,4], typename="PI")
+
+        trajana.make_figure()
+        LOG.bullet(f"Trajectory analysis figure saved to {params.figure_file}")
 
 if __name__ == '__main__':
     main()

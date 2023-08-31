@@ -336,7 +336,7 @@ def _positions_mp(frame_chunk, segids, TOP, TRAJ, reference_positions, term_atom
     Nterm_positions = np.zeros_like(Cterm_positions)
     RMSDs = np.zeros((segids.shape[0], u.trajectory.n_frames))
 
-    scsel = f'not backbone and not {" and not ".join(term_atom_names)}'
+    scsel = f'not backbone and not {" and not ".join(term_atom_names)} and not name H*'
     termsel = f'{" or ".join(term_atom_names)}'
 
     layers = [u.select_atoms(f"segid {' '.join(layer_segids)}") for layer_segids in segids]

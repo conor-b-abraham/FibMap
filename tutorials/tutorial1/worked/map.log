@@ -122,7 +122,7 @@ HYDROGEN BONDS:
   1-VAL52-BB  1-GLY51-BB     0.000       1.000
   1-TRP53-BB  1-VAL52-BB     0.000       1.000
   1-ALA54-BB  1-TRP53-BB     0.000       1.000
-   1-ALA55-T  1-ALA54-BB     0.000       1.000
+  1-ALA55-BB  1-ALA54-BB     0.000       1.000
     2-SER2-T  1-ASP33-SC     0.000       1.000
    2-PHE3-BB   2-SER2-BB     0.000       1.000
    2-PHE4-BB   2-PHE3-BB     0.000       1.000
@@ -153,7 +153,7 @@ HYDROGEN BONDS:
   2-VAL52-BB  2-GLY51-BB     0.000       1.000
   2-TRP53-BB  2-VAL52-BB     0.000       1.000
   2-ALA54-BB  2-TRP53-BB     0.000       1.000
-   2-ALA55-T  2-ALA54-BB     0.000       1.000
+  2-ALA55-BB  2-ALA54-BB     0.000       1.000
 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 SALT BRIDGES:
@@ -208,4 +208,4 @@ T: T-Shaped    I: Intermediate    S: Sandwich    D: Parallel Displaced
 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 COMPLETE:
-~ Fibril Map saved to /home/conor/Research/programs/FibMap/tutorials/tutorial1/worked/Tutorial1_FibMap.png
+~ Fibril Map saved to Tutorial1_FibMap.png

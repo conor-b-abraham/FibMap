@@ -1,12 +1,18 @@
-# Created checkpoint file on 25/08/2023 at 16:57:38
+# Created checkpoint file on 31/08/2023 at 12:12:30
 trajectory_file = /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked/traj.xtc
 topology_file = /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked/top.tpr
 output_directory = /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked
 n_protofilaments = 2
 omit_layers = 2
-# The following addition was made to checkpoint file on 25/08/2023 at 16:57:44
+# The following addition was made to checkpoint file on 31/08/2023 at 12:12:36
+hb_unprocessed_file = /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked/unprocessed_hydrogen_bonds.npy
+# The following addition was made to checkpoint file on 31/08/2023 at 12:12:37
 hb_processed_file = /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked/processed_hydrogen_bonds.npy
-# The following addition was made to checkpoint file on 25/08/2023 at 16:57:48
+# The following addition was made to checkpoint file on 31/08/2023 at 12:12:41
+sb_unprocessed_file = /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked/unprocessed_salt_bridges.npy
+# The following addition was made to checkpoint file on 31/08/2023 at 12:12:41
 sb_processed_file = /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked/processed_salt_bridges.npy
-# The following addition was made to checkpoint file on 25/08/2023 at 16:57:53
+# The following addition was made to checkpoint file on 31/08/2023 at 12:12:47
+pi_unprocessed_file = /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked/unprocessed_pistacking_interactions.npy
+# The following addition was made to checkpoint file on 31/08/2023 at 12:12:47
 pi_processed_file = /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked/processed_pistacking_interactions.npy
