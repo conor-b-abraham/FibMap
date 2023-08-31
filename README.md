@@ -918,7 +918,7 @@ A sample trajectory with its topology file is provided in the tutorials/tutorial
     <img src="./pics/Tutorial2_Traj.png" width="100%">
     </p>
 
-    > **Figure 14:** Trajecotry analysis output for Tutorial 2.
+    > **Figure 14:** Trajectory analysis output for Tutorial 2. The figure shows the number of each type of interaction per layer for each frame.
 
     </details>
 
