@@ -166,7 +166,7 @@ class TrajectoryAnalysis:
 
             if len(ax) == 3:
                 if ai == 0:
-                    prune = 'lower'
+                    prune = None
                     xticks = "top"
                     xlabel = False
                     legend = True
