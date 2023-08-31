@@ -694,7 +694,8 @@ subgraph O[Output Directory]
   end
   subgraph T[traj Output Files]
     subgraph TA[always created]
-      TAB[figure.png]
+      TAA[figure.png]
+      TAB[traj_results.npz]
     end
     subgraph TL[if --log]
       TLA[traj.log]
@@ -773,7 +774,47 @@ file.close() # Need to close the file
 | File Name | Description |
 |--- |--- |
 | **traj.log** | A log file containing STDOUT. This file is created if the `--log` flag is used. If a file with this name already exists in the output directory this file will be backed up unless the `--nobackup` flag is used. |
+| **traj_results.npz** | A file containing NumPy arrays with the results from the `traj` run. Further details are provided below (See **About traj_results.npz**). |
 | **figure.png** | The saved figure named according to the `-o/--figure_file` argument. |
+
+<details>
+<summary>About traj_results.npz</summary>
+
+This .npz file always contains the following array:
+* **times**: Contains the times of each frame
+  
+   This is an array of shape ($N_{\mathrm{frames}}$,). For each frame, its time is provided in units of picoseconds.
+
+This .npz file will contain at least one of the following arrays:
+* **HB**: Contains the number of hydrogen bonds per layer at each frame
+  
+   This is an array of shape ($N_{\mathrm{frames}}$, $3$). For each frame, the average number of intralayer, interlayer, and total hydrogen bonds per layer are provided in columns 1, 2, and 3, respectively.
+
+* **SB**: Contains the number of salt bridges per layer at each frame
+  
+   This is an array of shape ($N_{\mathrm{frames}}$, $3$). For each frame, the average number of intralayer, interlayer, and total salt bridges per layer are provided in columns 1, 2, and 3, respectively.
+
+* **HB**: Contains the number of pi stacking interactions per layer at each frame
+  
+   This is an array of shape ($N_{\mathrm{frames}}$, $3$). For each frame, the average number of intralayer, interlayer, and total pi stacking interactions per layer are provided in columns 1, 2, and 3, respectively.
+
+These arrays can be accessed using NumPy:
+
+```python
+import numpy as np
+
+file = np.load("map_positions.npz")
+times = file["times"]
+included_arrays = list(file.keys())
+if "HB" in included_arrays: # Hydrogen Bond results are only calculated and saved if hb_unprocessed_results.npy was found
+    HB = file["HB"]
+if "SB" in included_arrays: # Salt Bridge results are only calculated and saved if hb_unprocessed_results.npy was found
+    SB = file["SB"]
+if "PI" in included_arrays: # Pi Stacking Interaction results are only calculated and saved if hb_unprocessed_results.npy was found
+    PI = file["PI"]
+file.close() # Need to close the file
+```
+</details>
 </details>
 
 <p align="left">(<a href="#top">back to top</a>)</p>

@@ -30,7 +30,7 @@ Input
 Output
     - output_directory: .
     - nobackup: True
-    - figure_file: Tutorial1_Traj.png
+    - figure_file: Tutorial2_Traj.png
     - showfig: True
     - output_log: traj.log
 Options
@@ -53,4 +53,20 @@ Protofilament 2: seg_5_P23 seg_7_P24 seg_9_P25 seg_11_P26 seg_13_P27 seg_15_P28 
 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 PERFORMING TRAJECTORY ANALYSIS:
-~ Trajectory analysis figure saved to Tutorial1_Traj.png
+Results Summary:
+Hydrogen Bonds:
+     N(Intralayer)/layer: 15.312+-0.653
+     N(Interlayer)/layer: 29.511+-4.304
+          N(Total)/layer: 44.823+-4.442
+Salt Bridges:
+     N(Intralayer)/layer: 7.125+-0.382
+     N(Interlayer)/layer: 4.343+-0.409
+          N(Total)/layer: 11.468+-0.556
+Pi Stacking Interactions:
+     N(Intralayer)/layer: 3.667+-0.400
+     N(Interlayer)/layer: 26.476+-0.228
+          N(Total)/layer: 30.143+-0.481
+
+~ Trajectory analysis results saved to /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked/traj_results.npz containing results
+  for: Hydrogen Bonds, Salt Bridges, Pi Stacking Interactions
+~ Trajectory analysis figure saved to Tutorial2_Traj.png

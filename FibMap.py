@@ -678,17 +678,26 @@ def main():
         LOG.header("PERFORMING TRAJECTORY ANALYSIS")
 
         trajana = traj.TrajectoryAnalysis(SYSTEMINFO, params)
+        didtypes = []
         if params.hb_unprocessed_file is not None:
             results = np.load(params.hb_unprocessed_file)[:,:4].astype(int)
             trajana.add_interaction_type(frames=results[:,0], layer_a=SYSTEMINFO.atom_info[results[:,1],0], layer_b=SYSTEMINFO.atom_info[results[:,3],0], typename="HB")
+            didtypes.append("Hydrogen Bonds")
 
         if params.sb_unprocessed_file is not None:
             results = np.load(params.sb_unprocessed_file)
             trajana.add_interaction_type(frames=results[:,0], layer_a=results[:,1], layer_b=results[:,5], typename="SB")
+            didtypes.append("Salt Bridges")
 
         if params.pi_unprocessed_file is not None:
             results = np.load(params.pi_unprocessed_file)
             trajana.add_interaction_type(frames=results[:,0], layer_a=results[:,1], layer_b=results[:,4], typename="PI")
+            didtypes.append("Pi Stacking Interactions")
+
+        if params.hb_unprocessed_file is not None or params.sb_unprocessed_file is not None or params.pi_unprocessed_file is not None:
+            trajana.show(LOG)
+            trajana.save()
+            LOG.bullet(f"Trajectory analysis results saved to {params.output_directory}/traj_results.npz containing results for: {', '.join(didtypes)}")
 
         trajana.make_figure()
         LOG.bullet(f"Trajectory analysis figure saved to {params.figure_file}")

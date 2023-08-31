@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator, AutoMinorLocator, FixedLocator
+import matplotlib as mpl
 import MDAnalysis as mda
 from scipy.stats import binned_statistic
-from matplotlib.ticker import MaxNLocator, AutoMinorLocator
-import matplotlib as mpl
 
 # CONTAINS:
 # Contains functions used for trajectory analysis
@@ -50,11 +50,11 @@ class TrajectoryAnalysis:
         self.n_intralayer = {}
         self.n_total = {}
         self.__n_incl = 0
-        self.times = np.arange(0, self.__n_frames)*self.__timestep
+        self.__rawtimes = np.arange(0, self.__n_frames)*self.__timestep
         self.__ymax = 0
 
         # Convert times to reasonable units
-        maxtime = self.times.max()
+        maxtime = self.__rawtimes.max()
         timeOoM = np.floor(np.log10(maxtime))
         cexp = int(timeOoM-1)
         if cexp > 0:
@@ -68,7 +68,7 @@ class TrajectoryAnalysis:
                 cexp = -negcexp
             self.__time_units = ["ps", "Err", "Err", "fs", "Err", "Err", "as"][negcexp]
         conversion_factor = (10**(-cexp))
-        self.times = self.times * conversion_factor
+        self.times = self.__rawtimes * conversion_factor
 
     def add_interaction_type(self, frames, layer_a, layer_b, typename):
         '''
@@ -107,6 +107,38 @@ class TrajectoryAnalysis:
             self.__ymax = checkymax
 
         self.__n_incl += 1
+    
+    def show(self, LOG):
+        '''
+        Print a summary of the results
+
+        Parameters
+        ----------
+        LOG : io.Logger
+            The logger object used for returning standard output to the console and logfile
+        '''
+        LOG.output("Results Summary:")
+        typelabels = {"HB":"Hydrogen Bonds:", "SB":"Salt Bridges:", "PI":"Pi Stacking Interactions:"}
+        for typename in self.n_total.keys():
+            LOG.output(typelabels[typename])
+            total = f"{np.round(np.mean(self.n_total[typename]), 3):.3f}+-{np.round(np.std(self.n_total[typename]), 3):.3f}"
+            intra = f"{np.round(np.mean(self.n_intralayer[typename]), 3):.3f}+-{np.round(np.std(self.n_intralayer[typename]), 3):.3f}"
+            inter = f"{np.round(np.mean(self.n_interlayer[typename]), 3):.3f}+-{np.round(np.std(self.n_interlayer[typename]), 3):.3f}"
+            LOG.output(f"{'N(Intralayer)/layer':>24}: {intra}")
+            LOG.output(f"{'N(Interlayer)/layer':>24}: {inter}")
+            LOG.output(f"{'N(Total)/layer':>24}: {total}")
+        LOG.output("")
+
+    def save(self):
+        '''
+        Save results
+        '''
+        results_dict = {}
+        results_dict["times"] = self.__rawtimes
+        for typename in ["HB", "SB", "PI"]:
+            if typename in self.n_interlayer.keys() and typename in self.n_intralayer.keys() and typename in self.n_total.keys():
+                results_dict[typename] = np.column_stack((self.n_intralayer[typename], self.n_interlayer[typename], self.n_total[typename]))
+        np.savez(f"{self.__params.output_directory}/traj_results.npz", **results_dict)
 
     def make_figure(self):
         '''
@@ -165,19 +197,24 @@ class TrajectoryAnalysis:
                 xlabel = True
                 legend = True
             
-            axis.yaxis.set_major_locator(MaxNLocator(nbins=10, prune=prune, min_n_ticks=4))
-            axis.xaxis.set_minor_locator(AutoMinorLocator())
-            axis.xaxis.set_major_locator(MaxNLocator(nbins=10, min_n_ticks=4))
-            axis.xaxis.set_minor_locator(AutoMinorLocator())
+            axis.yaxis.set_major_locator(MaxNLocator(nbins=5, prune=prune, min_n_ticks=4))
+            axis.yaxis.set_minor_locator(AutoMinorLocator())
+            if len(self.times) <= 10:
+                axis.xaxis.set_major_locator(FixedLocator(self.times))
+                usingwhichxticks = "major"
+            else:
+                axis.xaxis.set_major_locator(MaxNLocator(nbins=10, min_n_ticks=4))
+                axis.xaxis.set_minor_locator(AutoMinorLocator())
+                usingwhichxticks = "both"
 
-            axis.tick_params(which="both", axis="x", bottom=xticks=="bottom", top=xticks=="top")
+            axis.tick_params(which=usingwhichxticks, axis="x", bottom=xticks=="bottom", top=xticks=="top")
             axis.tick_params(which="major", axis="x", labelbottom=xticks=="bottom")
 
             if xlabel:
                 axis.set_xlabel(f"time ({self.__time_units})")
             axis.set_ylabel(r"$\mathrm{N_{"+ylabels[typename]+r"}/layer}$")
             if legend:
-                axis.legend(ncol=3)
+                axis.legend(ncol=3, edgecolor="inherit", framealpha=1)
         plt.tight_layout()
         plt.savefig(self.__params.figure_file)
         plt.show()
