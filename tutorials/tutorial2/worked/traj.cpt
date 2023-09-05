@@ -1,4 +1,4 @@
-# Created checkpoint file on 05/09/2023 at 15:01:03
+# Created checkpoint file on 05/09/2023 at 15:34:03
 trajectory_file = /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked/traj.xtc
 topology_file = /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked/top.tpr
 output_directory = /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked
@@ -10,5 +10,5 @@ sb_processed_file = /home/conor/Research/programs/FibMap/tutorials/tutorial2/wor
 sb_unprocessed_file = /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked/unprocessed_salt_bridges.npy
 pi_processed_file = /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked/processed_pistacking_interactions.npy
 pi_unprocessed_file = /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked/unprocessed_pistacking_interactions.npy
-# The following addition was made to checkpoint file on 05/09/2023 at 15:01:06
+# The following addition was made to checkpoint file on 05/09/2023 at 15:34:06
 traj_results_file = /home/conor/Research/programs/FibMap/tutorials/tutorial2/worked/traj_results.npz

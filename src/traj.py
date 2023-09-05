@@ -112,9 +112,9 @@ class TrajectoryAnalysis:
 
         bins = np.arange(0, self.__n_frames+1)-0.5
         sel_intra = unique_interactions[:,-1] == 0
-        self.n_intralayer[typename], _, _ = binned_statistic(unique_interactions[sel_intra,0], weighted_counts[sel_intra], bins=bins)
+        self.n_intralayer[typename], _, _ = binned_statistic(unique_interactions[sel_intra,0], weighted_counts[sel_intra], statistic='sum', bins=bins)
         sel_inter = unique_interactions[:,-1] == 1
-        self.n_interlayer[typename], _, _ = binned_statistic(unique_interactions[sel_inter,0], weighted_counts[sel_inter], bins=bins)
+        self.n_interlayer[typename], _, _ = binned_statistic(unique_interactions[sel_inter,0], weighted_counts[sel_inter], statistic='sum', bins=bins)
 
         self.n_total[typename] = self.n_intralayer[typename]+self.n_interlayer[typename]
 

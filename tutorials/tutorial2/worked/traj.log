@@ -58,12 +58,12 @@ PERFORMING TRAJECTORY ANALYSIS:
 Results Summary:
 Hydrogen Bonds:
      N(Intralayer)/layer: 15.312+-0.653
-     N(Interlayer)/layer: 29.511+-4.304
-          N(Total)/layer: 44.823+-4.442
+     N(Interlayer)/layer: 82.025+-2.463
+          N(Total)/layer: 97.337+-2.531
 Salt Bridges:
      N(Intralayer)/layer: 7.125+-0.382
-     N(Interlayer)/layer: 4.343+-0.409
-          N(Total)/layer: 11.468+-0.556
+     N(Interlayer)/layer: 12.163+-0.891
+          N(Total)/layer: 19.288+-1.070
 Pi Stacking Interactions:
      N(Intralayer)/layer: 3.667+-0.400
      N(Interlayer)/layer: 26.476+-0.228
