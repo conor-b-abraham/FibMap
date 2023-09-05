@@ -409,7 +409,7 @@ def main():
                             type=io.ap_valid_file,
                             nargs="+",
                             default=None, 
-                            help='(REQUIRED, Type: Filename) Checkpoint file(s) to finished calc or map job.'
+                            help='(REQUIRED, Type: Filename) Checkpoint file(s) from finished calc job or previous traj job.'
                             )
     traj_inputs.add_argument("-i", "--input_file",
                             type=io.ap_valid_file, 
@@ -455,19 +455,23 @@ def main():
     traj_figopts.add_argument("--figure_dpi",
                               type=io.ap_positive_int,
                               default=300, 
-                              help="(OPTIONAL, Default: 300dpi, Type: float > 0) Set the figure resolution in dots per inch.")
-    traj_figopts.add_argument("--hbond_color",
+                              help="(OPTIONAL, Default: 300dpi, Type: int > 0) Set the figure resolution in dots per inch.")
+    traj_figopts.add_argument("--fontsize",
+                            type=io.ap_positive_float, 
+                            default=6,
+                            help="(OPTIONAL, Default: 6, Type: float > 0) Set the fontsize to use on the plot. The font is Arial.")
+    traj_figopts.add_argument("--total_color",
                               type=io.ap_valid_color, 
                               default="black",
-                              help="(OPTIONAL, Default: black, Type: MatPlotLib Color) Color of the lines on the Hydrogen Bond plot.")
-    traj_figopts.add_argument("--saltbridge_color",
+                              help="(OPTIONAL, Default: black, Type: MatPlotLib Color) Color of the total lines.")
+    traj_figopts.add_argument("--intralayer_color",
                               type=io.ap_valid_color, 
                               default="black",
-                              help="(OPTIONAL, Default: black, Type: MatPlotLib Color) Color of the lines on the Salt Bridge plot.")
-    traj_figopts.add_argument("--pistacking_color",
+                              help="(OPTIONAL, Default: black, Type: MatPlotLib Color) Color of the intralayer lines.")
+    traj_figopts.add_argument("--interlayer_color",
                               type=io.ap_valid_color, 
                               default="black",
-                              help="(OPTIONAL, Default: black, Type: MatPlotLib Color) Color of the lines on the Pi Stacking Interaction plot.")
+                              help="(OPTIONAL, Default: black, Type: MatPlotLib Color) Color of the interlayer.")
     
     args = parser.parse_args()
 
@@ -678,26 +682,32 @@ def main():
         LOG.header("PERFORMING TRAJECTORY ANALYSIS")
 
         trajana = traj.TrajectoryAnalysis(SYSTEMINFO, params)
-        didtypes = []
-        if params.hb_unprocessed_file is not None:
+        didtypes = [t for t in trajana.retrieved_interaction_types]
+        if params.traj_results_file is not None:
+            LOG.bullet(f"Trajectory analysis results for {', '.join(didtypes)} retrieved from {params.traj_results_file}")
+            print()
+
+        if params.hb_unprocessed_file is not None and "Hydrogen Bonds" not in trajana.retrieved_interaction_types:
             results = np.load(params.hb_unprocessed_file)[:,:4].astype(int)
             trajana.add_interaction_type(frames=results[:,0], layer_a=SYSTEMINFO.atom_info[results[:,1],0], layer_b=SYSTEMINFO.atom_info[results[:,3],0], typename="HB")
             didtypes.append("Hydrogen Bonds")
 
-        if params.sb_unprocessed_file is not None:
+        if params.sb_unprocessed_file is not None and "Salt Bridges" not in trajana.retrieved_interaction_types:
             results = np.load(params.sb_unprocessed_file)
             trajana.add_interaction_type(frames=results[:,0], layer_a=results[:,1], layer_b=results[:,5], typename="SB")
             didtypes.append("Salt Bridges")
 
-        if params.pi_unprocessed_file is not None:
+        if params.pi_unprocessed_file is not None and "Pi Stacking Interactions" not in trajana.retrieved_interaction_types:
             results = np.load(params.pi_unprocessed_file)
             trajana.add_interaction_type(frames=results[:,0], layer_a=results[:,1], layer_b=results[:,4], typename="PI")
             didtypes.append("Pi Stacking Interactions")
 
-        if params.hb_unprocessed_file is not None or params.sb_unprocessed_file is not None or params.pi_unprocessed_file is not None:
+        if params.hb_unprocessed_file is not None or params.sb_unprocessed_file is not None or params.pi_unprocessed_file is not None or params.traj_results_file is not None:
             trajana.show(LOG)
-            trajana.save()
-            LOG.bullet(f"Trajectory analysis results saved to {params.output_directory}/traj_results.npz containing results for: {', '.join(didtypes)}")
+            if didtypes != trajana.retrieved_interaction_types:
+                trajana.save()
+                params.set_filename(traj_results_file=f"{params.output_directory}/traj_results.npz")
+                LOG.bullet(f"Trajectory analysis results saved to {params.traj_results_file} containing results for: {', '.join(didtypes)}")
 
         trajana.make_figure()
         LOG.bullet(f"Trajectory analysis figure saved to {params.figure_file}")

@@ -40,18 +40,34 @@ class TrajectoryAnalysis:
         '''
         self.__sysinfo = sysinfo
         self.__params = params
+        self.n_interlayer = {}
+        self.n_intralayer = {}
+        self.n_total = {}
+        self.__n_incl = 0
+        self.__ymax = 0
+        self.retrieved_interaction_types = []
+        if self.__params.traj_results_file is not None:
+            with np.load(self.__params.traj_results_file) as file:
+                included_arrays = list(file.keys())
+                for typeabbrev in included_arrays:
+                    if typeabbrev != "times":
+                        typename = {"HB":"Hydrogen Bonds", "SB":"Salt Bridges", "PI":"Pi Stacking Interactions"}[typeabbrev]
+                        fullarray = file[typeabbrev]
+                        self.n_total[typeabbrev] = fullarray[:,2]
+                        self.n_intralayer[typeabbrev] = fullarray[:,0]
+                        self.n_interlayer[typeabbrev] = fullarray[:,1]
+
+                        checkymax = fullarray.max()
+                        if checkymax > self.__ymax:
+                            self.__ymax = checkymax
+                        self.retrieved_interaction_types.append(typename)
+                        self.__n_incl += 1
 
         # need the total number of frames
         u = mda.Universe(self.__params.topology_file, self.__params.trajectory_file)
         self.__n_frames = u.trajectory.n_frames
         self.__timestep = u.trajectory.dt
-
-        self.n_interlayer = {}
-        self.n_intralayer = {}
-        self.n_total = {}
-        self.__n_incl = 0
         self.__rawtimes = np.arange(0, self.__n_frames)*self.__timestep
-        self.__ymax = 0
 
         # Convert times to reasonable units
         maxtime = self.__rawtimes.max()
@@ -151,15 +167,14 @@ class TrajectoryAnalysis:
 
         mpl.rcParams['font.sans-serif'] = "Arial"
         mpl.rcParams['font.family'] = "sans-serif"
-        mpl.rcParams['font.size'] = 6
+        mpl.rcParams['font.size'] = self.__params.fontsize
 
         fig, ax = plt.subplots(nrows=self.__n_incl, ncols=1, figsize=(self.__params.figure_width, self.__params.figure_height), gridspec_kw={"hspace":0}, dpi=self.__params.figure_dpi)
-        colors = {"HB":self.__params.hbond_color, "SB":self.__params.saltbridge_color, "PI":self.__params.pistacking_color}
         ylabels  = {"HB": "H-Bonds", "SB":"Salt Bridges", "PI":"Pi Stacking"}
         for ai, (axis, typename) in enumerate(zip(ax, self.n_total.keys())):
-            axis.plot(self.times, self.n_total[typename], color=colors[typename], linestyle="solid", linewidth=1, label="Total")
-            axis.plot(self.times, self.n_intralayer[typename], color=colors[typename], linestyle="dashed", linewidth=1, label="Intralayer")
-            axis.plot(self.times, self.n_interlayer[typename], color=colors[typename], linestyle="dotted", linewidth=1, label="Interlayer")
+            axis.plot(self.times, self.n_total[typename], color=self.__params.total_color, linestyle="solid", linewidth=1, label="Total")
+            axis.plot(self.times, self.n_intralayer[typename], color=self.__params.intralayer_color, linestyle="dashed", linewidth=1, label="Intralayer")
+            axis.plot(self.times, self.n_interlayer[typename], color=self.__params.interlayer_color, linestyle="dotted", linewidth=1, label="Interlayer")
 
             axis.set_xlim(self.times.min(), _roundupOoM(self.times.max()))
             axis.set_ylim(0, _roundupOoM(self.__ymax))

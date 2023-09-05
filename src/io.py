@@ -25,22 +25,28 @@ from src import utils
 # ------------------------------------------------------------------------------
 # FILE BACKUP:
 # ------------------------------------------------------------------------------
-def file_backup(directory, filename):
+def file_backup(filename, directory):
         '''
         Check for files in directory with the same filename. If they exist, back them up.
 
         Parameters
         ----------
-        directory : Str
-            Directory where file will be written to
         filename : Str
             New file's filename
+        directory : Str or None
+            Directory where file will be written to. If None, filename must include full path and directory will be determined. 
         
         Returns
         -------
         loglines : Str
             lines for output
         '''
+        if directory is None: # Find the directory from the file path
+            if "/" not in filename:
+                directory = os.getcwd()
+            else:
+                directory = filename[:filename.rfind("/")]
+
         loglines = ""
         outdir_contents = os.listdir(directory)
         if filename in outdir_contents:
@@ -1056,7 +1062,8 @@ class Params:
             'hb_unprocessed_file':[],
             'sb_unprocessed_file':[],
             'pi_unprocessed_file':[],
-            'map_positions_file':[]
+            'map_positions_file':[],
+            'traj_results_file':[]
         }
         for filename in self.__param_info["checkpoint_file"][0]:
             filename = _valid_file("checkpoint_file", filename)
@@ -1141,7 +1148,8 @@ class Params:
             "sb_unprocessed_file":[None, _valid_file],
             "pi_processed_file":[None, _valid_file],
             "pi_unprocessed_file":[None, _valid_file],
-            "map_positions_file":[None, _valid_file]
+            "map_positions_file":[None, _valid_file],
+            "traj_results_file":[None, _valid_file]
         }
         if self.command == "map" or self.command == "calc":
             self.__param_info = {**self.__param_info, **{
@@ -1210,9 +1218,10 @@ class Params:
             }}
         elif self.command == "traj":
             self.__param_info = {**self.__param_info, **{
-                "hbond_color":["black", _valid_color_nochain],
-                "saltbridge_color":["black", _valid_color_nochain],
-                "pistacking_color":["black", _valid_color_nochain],
+                "total_color":["black", _valid_color_nochain],
+                "intralayer_color":["black", _valid_color_nochain],
+                "interlayer_color":["black", _valid_color_nochain],
+                "fontsize":[6, _positive_float]
             }}
         
         # Collect critical arguments from commandline
@@ -1229,8 +1238,8 @@ class Params:
             self._compare_checkpoints() # Check to make sure there are not conflicts
             for cptfile in self.__param_info["checkpoint_file"][0]:
                 self._inputfile_reader(cptfile)
-        elif self.command == "map": # Checkpoint file is required for map subcommand
-            raise SystemExit("Parameter Error: -c / --checkpoint_file: Checkpoint file is required for the map command but was not provided.")
+        elif self.command in ["map", "traj"]: # Checkpoint file is required for map and traj subcommands
+            raise SystemExit(f"Parameter Error: -c / --checkpoint_file: Checkpoint file is required for the {self.command} command but was not provided.")
         
         # Check to make sure parameters are valid
         for pname, pvalue in self.__param_info.items():
@@ -1325,24 +1334,23 @@ class Params:
             self.output_namestem = f"calc_{self.calctype.replace('+', '-')}"
         else:
             self.output_namestem = self.command
-            if not self.nobackup:
-                self.__loglines.append(file_backup(self.output_directory, self.figure_file)) # Backup Previously Made Figures
             if self.figure_file is None:
                 if self.command == "map":
                     self.figure_file = f"{self.output_directory}/fibmap.png" # Update output figure file
                 elif self.command == "traj":
                     self.figure_file = f"{self.output_directory}/traj.png" # Update output figure file
+            if not self.nobackup:
+                self.__loglines.append(file_backup(self.figure_file, None)) # Backup Previously Made Figures
 
         if self.log and not self.nobackup:
-            self.__loglines.append(file_backup(self.output_directory, f"{self.output_namestem}.log")) # Backup Previously Made LogFiles
+            self.__loglines.append(file_backup(f"{self.output_namestem}.log", self.output_directory)) # Backup Previously Made LogFiles
         self.output_namestem = f"{self.output_directory}/{self.output_namestem}"
         if self.log:
             self.output_log = f"{self.output_namestem}.log"
         else:
             self.output_log = None
         del self.log
-        if self.command != "traj":
-            self.output_cpt = f"{self.output_namestem}.cpt"
+        self.output_cpt = f"{self.output_namestem}.cpt"
 
         # Make sure there is data to analyze for traj
         if self.command == "traj" and self.hb_unprocessed_file is None and self.sb_unprocessed_file is None and self.pi_unprocessed_file is None:
@@ -1351,7 +1359,7 @@ class Params:
         # Write Starting State Checkpoint File
         if self.command == "calc" and self.checkpoint_file is not None and type(self.checkpoint_file) != list:
             self.output_cpt = self.checkpoint_file
-        elif self.command != "traj":
+        else:
             with open(self.output_cpt, "w+") as cpt:
                 cpt.write(f"# Created checkpoint file on {datetime.now().strftime('%d/%m/%Y at %H:%M:%S')}\n")
                 if type(self.trajectory_file) == str:
@@ -1364,28 +1372,30 @@ class Params:
                 cpt.write(f"omit_layers = {self.omit_layers}\n")
                 if self.hb_processed_file is not None:
                     cpt.write(f"hb_processed_file = {self.hb_processed_file}\n")
-                if self.command == 'calc' and self.hb_unprocessed_file is not None:
+                if self.command in ['calc', 'traj'] and self.hb_unprocessed_file is not None:
                     cpt.write(f"hb_unprocessed_file = {self.hb_unprocessed_file}\n")
                 if self.sb_processed_file is not None:
                     cpt.write(f"sb_processed_file = {self.sb_processed_file}\n")
-                if self.command == 'calc' and self.sb_unprocessed_file is not None:
+                if self.command in ['calc', 'traj'] and self.sb_unprocessed_file is not None:
                     cpt.write(f"sb_unprocessed_file = {self.sb_unprocessed_file}\n")
                 if self.pi_processed_file is not None:
                     cpt.write(f"pi_processed_file = {self.pi_processed_file}\n")
-                if self.command == 'calc' and self.pi_unprocessed_file is not None:
+                if self.command in ['calc', 'traj'] and self.pi_unprocessed_file is not None:
                     cpt.write(f"pi_unprocessed_file = {self.pi_unprocessed_file}\n")
                 if self.command == 'map' and self.map_positions_file is not None:
                     cpt.write(f"map_positions_file = {self.map_positions_file}\n")
+                if self.command == 'traj' and self.traj_results_file is not None:
+                    cpt.write(f"traj_results_file = {self.traj_results_file}\n")
     
     def __str__(self):
         types = {
             "Input": ["trajectory_file","topology_file","checkpoint_file","hb_processed_file","hb_unprocessed_file","sb_processed_file","sb_unprocessed_file","pi_processed_file","pi_unprocessed_file","map_positions_file"],
             "Output": ["output_directory","nosaveraw","saveraw","verbose","nprocs", "log","nolog","nobackup","backup","figure_file","showfig", "output_log", "output_cpt"],
             "Options": ["n_protofilaments","omit_layers","calctype","hbond_distance_cutoff","hbond_angle_cutoff","saltbridge_selection_mode","saltbridge_anion_charge_cutoff","saltbridge_cation_charge_cutoff","saltbridge_anion_sel","saltbridge_cation_sel","saltbridge_distance_cutoff","pistacking_phe_sel","pistacking_tyr_sel","pistacking_his_sel","pistacking_trp_sel"],
-            "Figure Options":["figure_width","figure_height","legend","figure_dpi","transparent_background","numbered_residues"],
+            "Figure Options":["figure_width","figure_height","legend","figure_dpi","transparent_background","numbered_residues", "fontsize"],
             "Regions": ["water_region","zipper_region"],
             "Cutoffs": ["p_cutoff","hbond_n_cutoff","hbond_p_cutoff","saltbridge_p_cutoff","pistacking_p_cutoff"],
-            "Colors": ["acidic_color","acidic_label_color","basic_color","basic_label_color","polar_color","polar_label_color","nonpolar_color","nonpolar_label_color","backbone_color","hbond_color_1","hbond_color_2","saltbridge_color_1","saltbridge_color_2","saltbridge_color_3","pistacking_color_1","pistacking_color_2","water_color","water_opacity","zipper_color","zipper_opacity","hbond_color", "saltbridge_color", "pistacking_color"]}
+            "Colors": ["acidic_color","acidic_label_color","basic_color","basic_label_color","polar_color","polar_label_color","nonpolar_color","nonpolar_label_color","backbone_color","hbond_color_1","hbond_color_2","saltbridge_color_1","saltbridge_color_2","saltbridge_color_3","pistacking_color_1","pistacking_color_2","water_color","water_opacity","zipper_color","zipper_opacity","total_color", "interlayer_color", "intralayer_color"]}
         
         return_string = f"  - command: {self.command}\n"
         for section, params in types.items():
@@ -1419,7 +1429,7 @@ class Params:
     def set_filename(self, hb_unprocessed_file=None, hb_processed_file=None, 
                      sb_unprocessed_file=None, sb_processed_file=None, 
                      pi_unprocessed_file=None, pi_processed_file=None, 
-                     map_positions_file=None):
+                     map_positions_file=None, traj_results_file=None):
         '''
         Set the name of a file and add to checkpoint file
 
@@ -1439,6 +1449,8 @@ class Params:
             the new name of the processed pi stacking interaction file
         map_positions_file : Str or None [Default is None]
             the new name of the map positions file
+        traj_results_file : Str or None [Default is None]
+            the new name of the traj results file
         '''
         def _add_to_checkpoint(parameter_name, parameter_value, cpt_file):
             with open(cpt_file, "a") as file:
@@ -1467,6 +1479,9 @@ class Params:
         if map_positions_file is not None:
             self.map_positions_file = map_positions_file
             _add_to_checkpoint("map_positions_file", map_positions_file, self.output_cpt)
+        if traj_results_file is not None:
+            self.traj_results_file = traj_results_file
+            _add_to_checkpoint("traj_results_file", traj_results_file, self.output_cpt)
 
 
 

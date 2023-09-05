@@ -33,6 +33,7 @@ Output
     - figure_file: Tutorial2_Traj.png
     - showfig: True
     - output_log: traj.log
+    - output_cpt: traj.cpt
 Options
     - n_protofilaments: 2
     - omit_layers: 2
@@ -40,10 +41,11 @@ Figure Options
     - figure_width: 3.5
     - figure_height: 4.0
     - figure_dpi: 300
+    - fontsize: 6.0
 Colors
-    - hbond_color: black
-    - saltbridge_color: black
-    - pistacking_color: black
+    - total_color: black
+    - interlayer_color: black
+    - intralayer_color: black
 
 
 

@@ -592,7 +592,7 @@ Use this subcommand to analyze the trajectory from the calc subcommand (with --s
 
 | Argument | Default | Description |
 |--- |--- |--- |
-| `-c/--checkpoint_file filename ...` | None | Checkpoint file(s) to finished calc or map job. |
+| `-c/--checkpoint_file filename ...` | None | Checkpoint file(s) to finished calc job or previous traj job. |
 | `-i/--input_file filename` | None | Input file containing parameters for trajectory analysis job. All required commandline arguments and additional formatting parameters can alternatively be specified in this file. Arguments given at the commandline will override any of their counterparts given in this file. See **[Additional Help:](#additional-help-2) Input File Help** below for additional help. |
 </details>
 
@@ -617,9 +617,10 @@ Use this subcommand to analyze the trajectory from the calc subcommand (with --s
 | `--figure_width int` (int $\gt$ 0) | 3.5in | Set the figure width in inches. |
 | `--figure_height int` (int $\gt$ 0) | 4in | Set the figure height in inches. |
 | `--figure_dpi int` (int $\gt$ 0) | 300dpi | Set the figure resolution in dots per inch. |
-| `--hbond_color color` | black | Color of the lines on the Hydrogen Bond plot. |
-| `--saltbridge_color` | black | Color of the lines on the Salt Bridge plot. |
-| `--pistacking_color` | black | Color of the lines on the Pi Stacking Interaction plot. |
+| `--fontsize float` (float $\gt$ 0) | 6pt | Set the fontsize used on the plot. The font is Arial. |
+| `--total_color color` | black | Color of the total lines. |
+| `--intralayer_color` | black | Color of the intralayer lines. |
+| `--interlayer_color` | black | Color of the interlayer lines. |
 </details>
 
 #### Additional Help ####
@@ -696,6 +697,7 @@ subgraph O[Output Directory]
     subgraph TA[always created]
       TAA[figure.png]
       TAB[traj_results.npz]
+      TAC[traj.cpt]
     end
     subgraph TL[if --log]
       TLA[traj.log]
@@ -774,6 +776,7 @@ file.close() # Need to close the file
 | File Name | Description |
 |--- |--- |
 | **traj.log** | A log file containing STDOUT. This file is created if the `--log` flag is used. If a file with this name already exists in the output directory this file will be backed up unless the `--nobackup` flag is used. |
+| **traj.cpt** | A checkpoint file that can be used to skip the calculation of previously calculated results for given interaction types. |
 | **traj_results.npz** | A file containing NumPy arrays with the results from the `traj` run. Further details are provided below (See **About traj_results.npz**). |
 | **figure.png** | The saved figure named according to the `-o/--figure_file` argument. |
 
@@ -808,9 +811,9 @@ times = file["times"]
 included_arrays = list(file.keys())
 if "HB" in included_arrays: # Hydrogen Bond results are only calculated and saved if hb_unprocessed_results.npy was found
     HB = file["HB"]
-if "SB" in included_arrays: # Salt Bridge results are only calculated and saved if hb_unprocessed_results.npy was found
+if "SB" in included_arrays: # Salt Bridge results are only calculated and saved if sb_unprocessed_results.npy was found
     SB = file["SB"]
-if "PI" in included_arrays: # Pi Stacking Interaction results are only calculated and saved if hb_unprocessed_results.npy was found
+if "PI" in included_arrays: # Pi Stacking Interaction results are only calculated and saved if pi_unprocessed_results.npy was found
     PI = file["PI"]
 file.close() # Need to close the file
 ```
