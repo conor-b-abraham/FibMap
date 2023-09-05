@@ -173,7 +173,11 @@ To determine the positions of the residues on the FibMap the positions of a cent
 
 ### Trajectory Analysis ###
 
-Coming soon!
+For the trajectory analysis (completed by the `FibMap.py traj` subcommand), the number of interactions of a given type per layer is computed for each frame. For a finite fibril model with $n_{layers}$, an interlayer interaction with a layer separation of $\Delta \ell$ can only occur $n_{layers} - \Delta \ell$ times, so for a given frame the number of interactions per layer for a given type of interaction is computed as:
+
+$$N(f) = \sum_{i} \frac{1}{n_{layers}-\Delta \ell(i)},$$
+
+where $\Delta \ell$ us the layer separation between the two sites (i.e. for interaction $i$ between site $A$ in layer $\ell_A$ and site $B$ in layer $\ell_B$, $\Delta \ell(i))=|\ell_A - \ell_B |$.
 
 <p align="left">(<a href="#top">back to top</a>)</p>
 
