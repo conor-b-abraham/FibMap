@@ -650,9 +650,10 @@ showfig                = # [True/False] open the figure after saving
 figure_width           = # Width of Figure in inches
 figure_height          = # Height of Figure in inches
 figure_dpi             = # Figure resolution in dots per inch (dpi)
-hbond_color            = # Color of hydrogen bond plot lines
-saltbridge_color       = # Color of salt bridge plot lines
-pistacking_color       = # Color of pi stacking interaction plot lines
+fontsize               = # Size of font (font is Arial)
+total_color            = # Color of total plot lines
+intralayer_color       = # Color of intralayer plot lines
+interlayer_color       = # Color of interlayer plot lines
 ```
 </details>
 

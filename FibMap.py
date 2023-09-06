@@ -31,7 +31,7 @@ def main():
     subparsers = parser.add_subparsers(
                     title="SUBCOMMANDS",
                     description=LOG.output_formatter("The functionality of this program is broken up into three subcommands, calc, map, and traj. Use calc to compute interactions within the fibril structure. Then, use map to create the visualization and/or traj to perform the trajectory analysis."),
-                    help="Valid subcommands are calc and map.", 
+                    help="Valid subcommands are calc, map, and traj.", 
                     dest="command", 
                     required=True
                     )
