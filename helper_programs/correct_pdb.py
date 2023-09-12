@@ -43,6 +43,9 @@ else:
     if CIN is not None:
         print(f'\nRenaming residues in {IN} and {CIN}')
 
+if OUT[-4:] == ".pdb":
+    OUT = OUT[:-4]
+
 # MAIN
 if CIN is None:
     u = mda.Universe(IN)
@@ -140,7 +143,7 @@ if CIN is not None:
 if newu.atoms.n_atoms != u.atoms.n_atoms:
     sys.exit('Some atoms are missing based on your selection. Try again.')
 
-newu.atoms.write(OUT)
+newu.atoms.write(f"{OUT}.pdb")
 print(f"Corrected PDB written to: {OUT}.pdb")
 if CIN is not None:
     with open(f"{OUT}.psf", "w+") as file:
