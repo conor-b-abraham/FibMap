@@ -581,6 +581,22 @@ def _notype(p, s):
     '''
     return s
 
+def _selstring(p, s):
+    '''
+    Formats an MDAnalysis selection command. Note that this does not do any type checking.
+
+    Parameters
+    ----------
+    p : str
+        Name of parameter
+    s : str
+        Value of parameter. 
+    '''
+    if isinstance(s, list):
+        s = " ".join(s)
+    return s
+
+
 def _valid_bool(p, s):
     '''
     Check if value is boolean
@@ -745,6 +761,7 @@ def _valid_color_nochain(p, s):
             s=s.replace("]","")
             s=s.replace(" ","")
             s=s.split(",")
+            s=list(map(float, s))
         if not is_color_like(s):
             raise SystemExit(f"Error: parameter {p}: Expected valid matplotlib color, got {s}")
     
@@ -771,6 +788,7 @@ def _valid_color_orchain(p, s):
             s=s.replace("]","")
             s=s.replace(" ","")
             s=s.split(",")
+            s=list(map(float, s))
         if not is_color_like(s):
             raise SystemExit(f"Error: parameter {p}: Expected valid matplotlib color, got {s}")
     
@@ -1174,13 +1192,13 @@ class Params:
                 "saltbridge_selection_mode":["auto", _valid_sbselmode],
                 "saltbridge_anion_charge_cutoff":[-0.5, _any_float],
                 "saltbridge_cation_charge_cutoff":[0.5, _any_float],
-                "saltbridge_anion_sel":["((resname ASP and name OD1 OD2) or (resname GLU and name OE1 OE2))", _notype],
-                "saltbridge_cation_sel":["((resname LYS and name NZ) or (resname ARG and name NH1 NH2 NE) or (resname HSP and name ND1 NE2))", _notype],
+                "saltbridge_anion_sel":["((resname ASP and name OD1 OD2) or (resname GLU and name OE1 OE2))", _selstring],
+                "saltbridge_cation_sel":["((resname LYS and name NZ) or (resname ARG and name NH1 NH2 NE) or (resname HSP and name ND1 NE2))", _selstring],
                 "saltbridge_distance_cutoff":[4.0, _positive_float],
-                "pistacking_phe_sel":["(resname PHE and name CG CD2 CE2 CZ CE1 CD1)", _notype],
-                "pistacking_tyr_sel":["(resname TYR and name CG CD2 CE2 CZ CE1 CD1)", _notype],
-                "pistacking_his_sel":["(resname HSD HSE HSP and name CG CD2 NE2 CE1 ND1)", _notype],
-                "pistacking_trp_sel":["(resname TRP and name CG CD1 NE1 CE2 CD2)", _notype],
+                "pistacking_phe_sel":["(resname PHE and name CG CD2 CE2 CZ CE1 CD1)", _selstring],
+                "pistacking_tyr_sel":["(resname TYR and name CG CD2 CE2 CZ CE1 CD1)", _selstring],
+                "pistacking_his_sel":["(resname HSD HSE HSP and name CG CD2 NE2 CE1 ND1)", _selstring],
+                "pistacking_trp_sel":["(resname TRP and name CG CD1 NE1 CE2 CD2)", _selstring],
                 }}
         elif self.command == "map":
             self.__param_info = {**self.__param_info, **{
@@ -1243,7 +1261,7 @@ class Params:
         
         # Check to make sure parameters are valid
         for pname, pvalue in self.__param_info.items():
-            if type(pvalue[0]) == list:
+            if type(pvalue[0]) == list and pvalue[1] != _selstring:
                 pvals = []
                 for pval in pvalue[0]:
                     if pval == "REQ":

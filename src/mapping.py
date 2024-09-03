@@ -471,6 +471,16 @@ class FibrilMap:
         centered_positions = original_positions - np.mean(refCA.positions, axis=0)
         reflayer.positions = _rotmat(normal, np.array([0, 0, 1])).dot(centered_positions.T).T
 
+        # Rotate fibril to have its first layer on top (convention) 
+        top = self.__u.select_atoms(f"segid {' '.join(self.__sysinfo.structure[0,:])}")
+        bot = self.__u.select_atoms(f"segid {' '.join(self.__sysinfo.structure[-1,:])}")
+        fibdir = top.center_of_mass()-bot.center_of_mass()
+        fibdir = fibdir/np.linalg.norm(fibdir)
+        if _angle_180(fibdir, np.array([0,0,1])) > 90:
+            # It's in the wrong direction, so just flip it 180 degrees
+            rot180x = np.array([[1,0,0],[0,-1,0],[0,0,-1]]) # Rotation matrix for 180 turn around x axis
+            refu.atoms.positions = rot180x.dot(refu.atoms.positions.T).T
+
         # Rotate Reference Layer so that longest distance is aligned with the x axis
         # Could replace this with SVD
         layer_dists = distances.self_distance_array(refCA.positions)
