@@ -7,6 +7,7 @@ Fibmap is an automated tool for calculating and displaying the intermolecular fo
 Developed by Conor B. Abraham in the Straub Group at Boston University, Department of Chemistry
 
 If you use Fibmap, please cite:
+
 Conor B. Abraham, Emily Lewkowicz, Olga Gursky, & John E. Straub. Elucidating the mechanism of recognition and binding of heparin to amyloid fibrils of serum amyloid A. *Biochemistry* **2025**, *64*(1), DOI: [10.1021/acs.biochem.4c00529](https://doi.org/10.1021/acs.biochem.4c00529)
 
 ## Contents ##
