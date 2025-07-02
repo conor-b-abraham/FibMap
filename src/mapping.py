@@ -448,7 +448,8 @@ class FibrilMap:
             "main": {"water":False, "zipper":False},
             "hbond":{"section":False, "both":False, "same":False, "backbone":False},
             "sb":   {"section":False, "both":False},
-            "pipi": {"section":False, "both":False, "same":False}
+            "pipi": {"section":False, "both":False, "same":False},
+            "wb": {"section":False, "both":False, "same":False}
         }
         self.chains = None # Populated by make_chains() method
 
@@ -653,7 +654,7 @@ class FibrilMap:
 
         # set the radius and underradius of the beads
         self.__underradius = temp_underradius*conversion_factor
-        self.__radius = self.__underradius*0.8
+        self.__radius = self.__underradius*0.85
         self.__lw = self.__underradius - self.__radius
         if self.__lw < 0.5:
             self.__lw = 0.5
@@ -662,7 +663,7 @@ class FibrilMap:
         # Set fontsize
         mpl.rcParams['font.sans-serif'] = "Arial"
         mpl.rcParams['font.family'] = "sans-serif"
-        mpl.rcParams['font.size'] = np.round(1.5*self.__radius)
+        mpl.rcParams['font.size'] = np.floor(1.5*self.__radius)
 
         return ca_positions, sc_positions, ct_positions, nt_positions
     
@@ -768,9 +769,9 @@ class FibrilMap:
             chain.add_ct_position(np.array([Cmarkerx[1], Cmarkery[1]])) # Update C-terminal position to be position of marker
             chain.add_nt_position(np.array([Nmarkerx[1], Nmarkery[1]])) # Update N-terminal position to be position of marker
             self.ax.plot(chain.ct_position[0], chain.ct_position[1], markeredgecolor=chain.color, markerfacecolor=_term_color(self, chain.residues[-1]), 
-                         markersize=self.__radius, markeredgewidth=self.__lw*0.5, marker=(3,0,_C_termini_marker_direction(chain.ca_positions[-1, :], chain.ct_position)), zorder=6)
+                         markersize=self.__radius, markeredgewidth=self.__lw*0.5, marker=(3,0,_C_termini_marker_direction(chain.ca_positions[-1, :], chain.ct_position)), zorder=10)
             self.ax.plot(chain.nt_position[0], chain.nt_position[1], markeredgecolor=chain.color, markerfacecolor=_term_color(self, chain.residues[0]), 
-                         markersize=self.__radius, markeredgewidth=self.__lw*0.5, marker='o', zorder=6)
+                         markersize=self.__radius, markeredgewidth=self.__lw*0.5, marker='o', zorder=10)
 
             # ADD THE RESIDUES
             beadpatches, underbeadpatches = [], []
@@ -841,19 +842,19 @@ class FibrilMap:
         To draw adjacent residue backbone-backbone interlayer hbond: Provide dca and aca.
 
         Parameters
-            ----------
-            dpos : np.array(float) [1x2]
-                Position of donor anchor
-            dca : np.array(float) [1x2] or None
-                Position of donor alpha carbon. 
-            apos : np.array(float) [1x2] or None
-                Position of acceptor anchor. 
-            aca : np.array(float) [1x2] or None
-                Position of acceptor alpha carbon.
-            interlayer : Bool
-                If true, draw in interlayer style
-            intralayer : Bool
-                If true, draw in intralayer style
+        ----------
+        dpos : np.array(float) [1x2]
+            Position of donor anchor
+        dca : np.array(float) [1x2] or None
+            Position of donor alpha carbon. 
+        apos : np.array(float) [1x2] or None
+            Position of acceptor anchor. 
+        aca : np.array(float) [1x2] or None
+            Position of acceptor alpha carbon.
+        interlayer : Bool
+            If true, draw in interlayer style
+        intralayer : Bool
+            If true, draw in intralayer style
         '''
         # ------------------------------------------------------------------------------
         def _arrow_curve_direction(dpos, dca, apos, aca):
@@ -1150,7 +1151,7 @@ class FibrilMap:
         return "\n".join(sb_strings)
 
     # -------------------------------- PI STACKING --------------------------------
-    def _pi_stack(self, sc1, sc2=None, interlayer=False, intralayer=False):
+    def _pi_stack(self, sc1, sc2=None, interlayer=False, intralayer=False, legend_entry=False):
         '''
         Drawing utility for pi stacking interaction
 
@@ -1167,11 +1168,16 @@ class FibrilMap:
             If true, use interlayer style
         intralayer : Bool
             If true, use intralayer style
+        legend_entry : Bool
+            Is this for use in the legend, if yes, same position marker will be made smaller
         '''
         if sc1 is not None and sc2 is None: # Place same residue marker
+            ms = self.__radius
+            if legend_entry:
+                ms = ms/2
             self.ax.plot(sc1[0], sc1[1], linestyle=None, color=self.__params.pistacking_color_2, zorder=8, marker='o', 
                          markerfacecolor=self.__params.pistacking_color_2, markerfacecoloralt=self.__params.pistacking_color_2, 
-                         markeredgecolor=self.__params.pistacking_color_1, fillstyle='full', markersize=self.__radius, markeredgewidth=self.__lw*0.5)
+                         markeredgecolor=self.__params.pistacking_color_1, fillstyle='full', markersize=ms, markeredgewidth=self.__lw*0.5)
             self.__legend_items["pipi"]["same"] = True
         elif intralayer:
             self.ax.annotate('', xy=sc1, xytext=sc2, 
@@ -1235,6 +1241,145 @@ class FibrilMap:
 
         return "\n".join(pi_strings)
 
+# WATER WIRES ------------------------------------------------------------------------------
+    def _water_bridge(self, sc1, ca1, sc2=None, ca2=None, interlayer=False, intralayer=False, legend_entry=False):
+        '''
+        Drawing utility for water bridge
+
+        For same residue different layer: only specify sc1. Setting interlayer to True is not necessary. 
+        For pair of residues: Set sc1 and sc2 and specify interlayer and intralayer
+
+        Parameters
+        ----------
+        sc1 : np.array(Float, Float)
+            Sidechain anchor position for residue 1
+        sc2 : np.array(Float, Float) or None
+            Sidechain anchor position for residue 2. If not specified, a same residue marker will be placed at sc1.
+        interlayer : Bool
+            If true, use interlayer style
+        intralayer : Bool
+            If true, use intralayer style
+        legend_entry : Bool
+            Is this for use in the legend, if yes, same position marker will be made smaller
+        '''
+        wb1 = sc1-ca1
+        wb1 = self.__radius*9*(wb1/np.linalg.norm(wb1))
+        if sc1 is not None and sc2 is None: # Place same position marker
+            if legend_entry:
+                wb1 = wb1/2.5
+            cos = np.cos(np.pi/15)
+            sin = np.sin(np.pi/15)
+            Ra = np.array(((cos, -sin), (sin, cos)))
+            Rb = np.array(((cos, sin), (-sin, cos)))
+            wb1a = ca1+(Ra.dot(wb1.T).T)/3
+            wb1b = ca1+(Rb.dot(wb1.T).T)/3
+            m = ca1+wb1/2
+            res = ca1+(sc1-ca1)/2
+            path_data = [
+                (mpath.Path.MOVETO, res.tolist()),
+                (mpath.Path.LINETO, wb1a.tolist()),
+                (mpath.Path.CURVE3, m.tolist()),
+                (mpath.Path.CURVE3, wb1b.tolist()),
+                (mpath.Path.CLOSEPOLY, res.tolist())]
+            codes, verts = zip(*path_data)
+            path = mpath.Path(verts, codes)
+            same = True
+            self.__legend_items["wb"]["same"] = True
+        else:
+            wb1 = ca1+wb1
+            wb2 = sc2-ca2
+            wb2 = ca2+self.__radius*3*(wb2/np.linalg.norm(wb2))
+
+            m = (wb1+wb2)/2
+            path_data = [
+                (mpath.Path.MOVETO, sc1.tolist()),
+                (mpath.Path.CURVE3, m.tolist()),
+                (mpath.Path.CURVE3, sc2.tolist())]
+            codes, verts = zip(*path_data)
+            path = mpath.Path(verts, codes)
+            same = False
+
+        patches = []
+        if intralayer:
+            patches.append(PathPatch(path, facecolor="None", edgecolor=self.__params.waterbridge_color_1, linewidth=self.__lw, linestyle="solid"))
+            if interlayer:
+                patches.append(PathPatch(path, facecolor="None", edgecolor=self.__params.waterbridge_color_2, linewidth=self.__lw*0.5, linestyle="dotted"))
+                self.__legend_items["wb"]["both"] = True
+        elif same:
+            patches.append(PathPatch(path, facecolor="None", edgecolor=self.__params.waterbridge_color_1, linewidth=self.__lw, linestyle=(0, (0.5, 0.5)), joinstyle="round"))
+        elif interlayer:
+            patches.append(PathPatch(path, facecolor="None", edgecolor=self.__params.waterbridge_color_1, linewidth=self.__lw, linestyle="dotted"))
+        self.__legend_items["wb"]["section"] = True
+
+        self.ax.add_collection(PatchCollection(patches, match_original=True, zorder=6)) #6
+
+    def add_water_bridges(self):
+        '''
+        A water wires bridging different residues
+
+        Returns
+        -------
+        wb_string : str
+            Formatted string with details of pi stacking interactions that were added to the map
+        '''
+        wbinfo = np.load(self.__params.wb_processed_file)
+        tinds = np.array([6, 6+((wbinfo.shape[1]-6) // 2)]) # column indices of totals
+        # only consider water bridges that wont be cutoff
+        wbinfo = wbinfo[np.any(np.column_stack((wbinfo[:,tinds[0]]>self.__params.waterbridge_cutoff, wbinfo[:,tinds[1]]>self.__params.waterbridge_cutoff)), axis=1),:]
+        # switch to zero based indexing of protofilaments and residues
+        wbinfo[:,(0,1,3,4)] = wbinfo[:,(0,1,3,4)]-1
+
+        tinds = tinds-6
+        types = ["BB", "SC", "T"]
+        wb_strings = []
+        for (p1i, r1i, s1i, p2i, r2i, s2i), probs in zip(wbinfo[:,:6].astype(int), wbinfo[:,6:]):
+            intraL = probs[tinds[0]]
+            interL = probs[tinds[1]]
+            residue1 = self.chains[p1i].residues[r1i]
+            residue2 = self.chains[p2i].residues[r2i]
+            ID1 = f"{p1i+1}-{residue1.resname}-{types[s1i]}"
+            ID2 = f"{p2i+1}-{residue2.resname}-{types[s2i]}"
+            if s1i == 0: # Backbone
+                pos1 = residue1.ca_anchors
+            elif s1i == 1: # Sidechain
+                pos1 = residue1.sc_anchor
+            elif s1i == 2:
+                pos1 = residue1.t_position
+            if p1i == p2i and r1i == r2i and s1i == s2i and interL > self.__params.waterbridge_cutoff: # If they are the same residue, same position, different layers
+                if s1i == 0:
+                    pos1 = pos1[-1,:]
+                self._water_bridge(pos1, residue1.ca_position, interlayer=(interL>self.__params.waterbridge_cutoff), intralayer=(intraL>self.__params.waterbridge_cutoff))
+                ID2 = "SAME"
+                wb_strings.append(f"{ID1:>11}{ID2:>12}{np.round(intraL,3):>10.3f}{np.round(interL,3):>10.3f}")
+            else:
+                if s2i == 0: # Backbone
+                    pos2 = residue2.ca_anchors
+                elif s2i == 1: # Sidechain
+                    pos2 = residue2.sc_anchor
+                elif s2i == 2:
+                    pos2 = residue2.t_position
+
+                if s1i == 0 or s2i == 0: # including backbone
+                    if s1i == 0 and s2i == 0:
+                        d_12 = np.zeros((pos1.shape[0], pos2.shape[0]))
+                        for i, p1 in enumerate(pos1):
+                            for j, p2 in enumerate(pos2):
+                                d_12[i,j] = np.linalg.norm(p2-p1)
+                        sel12 = np.where(d_12==d_12.min())
+                        pos1 = pos1[sel12[0][0],:]
+                        pos2 = pos2[sel12[1][0],:]
+                    elif s1i == 0:
+                        d_12 = np.array([np.linalg.norm(pos2-p1) for p1 in pos1])
+                        pos1 = pos1[np.argmin(d_12),:]
+                    elif s2i == 0:
+                        d_12 = np.array([np.linalg.norm(p2-pos1) for p2 in pos2])
+                        pos2 = pos2[np.argmin(d_12),:]
+                
+                self._water_bridge(pos1, residue1.ca_position, pos2, residue2.ca_position, interlayer=(interL>self.__params.waterbridge_cutoff), intralayer=(intraL>self.__params.waterbridge_cutoff))
+                wb_strings.append(f"{ID1:>11}{ID2:>12}{np.round(intraL,3):>10.3f}{np.round(interL,3):>10.3f}")
+
+        return "\n".join(wb_strings)
+
     def make_legend(self):
         '''
         Add legend to the figure
@@ -1270,6 +1415,11 @@ class FibrilMap:
             legheight += 25 # having section adds at least 25
             if self.__legend_items["pipi"]["both"] or self.__legend_items["pipi"]["same"]:
                 legheight += 10
+        if self.__legend_items["wb"]["section"]:
+            legheight += 25 # having section adds at least 25
+            if self.__legend_items["wb"]["both"] or self.__legend_items["wb"]["same"]:
+                legheight += 10
+
         
         self.__legend_bottomleft[1] = self.__legend_bottomleft[1] + (self.__legend_dims[1]-legheight)/2
         self.__legend_dims[1] = legheight
@@ -1413,7 +1563,7 @@ class FibrilMap:
                 samex = currentx + 2*safe_width/3 
                 residue = Residue(None, "", np.array([samex, currenty]), np.array([samex-3, currenty]), 2, 2.75, "black", "white", "white", legend_residue=True)
                 _legend_residue(self.ax, residue)
-                self.ax.plot(residue.sc_anchor[0], residue.sc_anchor[1], marker='o', markersize=self.__radius*0.5, linestyle=None, 
+                self.ax.plot(residue.sc_anchor[0], residue.sc_anchor[1], marker='o', markersize=self.__radius*0.25, linestyle=None, 
                              markerfacecolor=self.__params.hbond_color_2, markeredgecolor=self.__params.hbond_color_1, 
                              markeredgewidth=self.__lw*0.5, zorder=16)
                 self.ax.annotate("Interlayer\n(Same Position)", [residue.sc_anchor[0]-3, currenty], fontsize=4, ha='right', va='center_baseline', zorder=2)
@@ -1472,14 +1622,14 @@ class FibrilMap:
             res2 = Residue(None, "", np.array([currentx+(safe_width/2)-10, currenty]), np.array([currentx+(safe_width/2)-13, currenty]), 2, 2.75, "black", "white", "white", legend_residue=True)
             _legend_residue(self.ax, res1)
             _legend_residue(self.ax, res2)
-            self._pi_stack(res1.sc_anchor, res2.sc_anchor, interlayer=False, intralayer=True)
+            self._pi_stack(res1.sc_anchor, res2.sc_anchor, interlayer=False, intralayer=True, legend_entry=True)
             self.ax.annotate("Intralayer", [currentx+((safe_width/2)-10)/2, currenty+1.5], fontsize=4, ha='center', va='bottom', zorder=2)
 
             res1 = Residue(None, "", np.array([currentx+(safe_width/2)+10, currenty]), np.array([currentx+(safe_width/2)+13, currenty]), 2, 2.75, "black", "white", "white", legend_residue=True)
             res2 = Residue(None, "", np.array([currentx+safe_width, currenty]), np.array([currentx+safe_width-3, currenty]), 2, 2.75, "black", "white", "white", legend_residue=True)
             _legend_residue(self.ax, res1)
             _legend_residue(self.ax, res2)
-            self._pi_stack(res1.sc_anchor, res2.sc_anchor, interlayer=True, intralayer=False)
+            self._pi_stack(res1.sc_anchor, res2.sc_anchor, interlayer=True, intralayer=False, legend_entry=True)
             self.ax.annotate("Interlayer", [currentx+((3*safe_width)/4)+5, currenty+1.5], fontsize=4, ha='center', va='bottom', zorder=2)
             
             currenty -= 10
@@ -1497,17 +1647,65 @@ class FibrilMap:
                 res2 = Residue(None, "", np.array([bothx+(safe_width/2)-10, currenty]), np.array([bothx+(safe_width/2)-13, currenty]), 2, 2.75, "black", "white", "white", legend_residue=True)
                 _legend_residue(self.ax, res1)
                 _legend_residue(self.ax, res2)
-                self._pi_stack(res1.sc_anchor, res2.sc_anchor, interlayer=True, intralayer=True)
+                self._pi_stack(res1.sc_anchor, res2.sc_anchor, interlayer=True, intralayer=True, legend_entry=True)
                 self.ax.annotate("Intra & Inter", [bothx+((safe_width/4)+10)/2, currenty+1.5], fontsize=4, ha='center', va='bottom', zorder=2)
             
             if self.__legend_items["pipi"]["same"]:
                 residue = Residue(None, "", np.array([samex, currenty]), np.array([samex-3, currenty]), 2, 2.75, "black", "white", "white", legend_residue=True)
                 _legend_residue(self.ax, residue)
-                self._pi_stack(residue.sc_anchor, interlayer=True)
-                self.ax.annotate("Interlayer\n(Same Position)", [residue.sc_anchor[0]-3, currenty], fontsize=4, ha='right', va='center', zorder=2)
+                self._pi_stack(residue.sc_anchor, interlayer=True, legend_entry=True)
+                self.ax.annotate("Interlayer\n(Same Position)", [residue.sc_anchor[0]-6, currenty], fontsize=4, ha='right', va='center', zorder=2)
             
             if self.__legend_items["pipi"]["both"] or self.__legend_items["pipi"]["same"]:
                 currenty -= 10
+
+        # Sixth, Water Bridges
+        if self.__legend_items["wb"]["section"]:
+            currenty -= 5
+            self.ax.annotate("Water Bridges", [currentx+(safe_width/2), currenty], fontsize=4, fontweight="bold", ha='center', va='center_baseline', zorder=2)
+            currenty -= 10
+
+            res1 = Residue(None, "", np.array([currentx, currenty]), np.array([currentx+3, currenty]), 2, 2.75, "black", "white", "white", legend_residue=True)
+            res2 = Residue(None, "", np.array([currentx+(safe_width/2)-10, currenty]), np.array([currentx+(safe_width/2)-13, currenty]), 2, 2.75, "black", "white", "white", legend_residue=True)
+            _legend_residue(self.ax, res1)
+            _legend_residue(self.ax, res2)
+            self._water_bridge(res1.sc_anchor, res1.ca_position, res2.sc_anchor, res2.ca_position, interlayer=False, intralayer=True, legend_entry=True)
+            self.ax.annotate("Intralayer", [currentx+((safe_width/2)-10)/2, currenty+1.5], fontsize=4, ha='center', va='bottom', zorder=2)
+
+            res1 = Residue(None, "", np.array([currentx+(safe_width/2)+10, currenty]), np.array([currentx+(safe_width/2)+13, currenty]), 2, 2.75, "black", "white", "white", legend_residue=True)
+            res2 = Residue(None, "", np.array([currentx+safe_width, currenty]), np.array([currentx+safe_width-3, currenty]), 2, 2.75, "black", "white", "white", legend_residue=True)
+            _legend_residue(self.ax, res1)
+            _legend_residue(self.ax, res2)
+            self._water_bridge(res1.sc_anchor, res1.ca_position, res2.sc_anchor, res2.ca_position, interlayer=True, intralayer=False, legend_entry=True)
+            self.ax.annotate("Interlayer", [currentx+((3*safe_width)/4)+5, currenty+1.5], fontsize=4, ha='center', va='bottom', zorder=2)
+
+            currenty -= 10
+
+            if self.__legend_items["wb"]["both"] and self.__legend_items["wb"]["same"]:
+                bothx = currentx
+                samex = currentx + safe_width
+            elif self.__legend_items["wb"]["both"]:
+                bothx = currentx + safe_width/4 + 5
+            elif self.__legend_items["wb"]["same"]:
+                samex = currentx + safe_width/2
+            
+            if self.__legend_items["wb"]["both"]:
+                res1 = Residue(None, "", np.array([bothx, currenty]), np.array([bothx+3, currenty]), 2, 2.75, "black", "white", "white", legend_residue=True)
+                res2 = Residue(None, "", np.array([bothx+(safe_width/2)-10, currenty]), np.array([bothx+(safe_width/2)-13, currenty]), 2, 2.75, "black", "white", "white", legend_residue=True)
+                _legend_residue(self.ax, res1)
+                _legend_residue(self.ax, res2)
+                self._water_bridge(res1.sc_anchor, res1.ca_position, res2.sc_anchor, res2.ca_position, interlayer=True, intralayer=True, legend_entry=True)
+                self.ax.annotate("Intra & Inter", [bothx+((safe_width/4)+10)/2, currenty+1.5], fontsize=4, ha='center', va='bottom', zorder=2)
+            
+            if self.__legend_items["wb"]["same"]:
+                residue = Residue(None, "", np.array([samex, currenty]), np.array([samex-3, currenty]), 2, 2.75, "black", "white", "white", legend_residue=True)
+                _legend_residue(self.ax, residue)
+                self._water_bridge(residue.sc_anchor, residue.ca_position, interlayer=True, legend_entry=True)
+                self.ax.annotate("Interlayer\n(Same Position)", [residue.sc_anchor[0]-8, currenty], fontsize=4, ha='right', va='center', zorder=2)
+
+            if self.__legend_items["wb"]["both"] or self.__legend_items["wb"]["same"]:
+                currenty -= 10
+
         # Finally, draw a box around the key
         bordercol = [FancyBboxPatch((self.__legend_bottomleft[0], currenty), self.__legend_dims[0], starty-currenty, fc="white", ec="black", boxstyle=BoxStyle("Round", pad=0.02), zorder=0)]
         self.ax.add_collection(PatchCollection(bordercol, match_original=True, zorder=0))

@@ -6,6 +6,10 @@ Fibmap is an automated tool for calculating and displaying the intermolecular fo
 
 Developed by Conor B. Abraham in the Straub Group at Boston University, Department of Chemistry
 
+**If you use Fibmap, please cite:**
+
+Conor B. Abraham, Emily Lewkowicz, Olga Gursky, & John E. Straub. Elucidating the mechanism of recognition and binding of heparin to amyloid fibrils of serum amyloid A. Biochemistry 2025, 64(1), 266–276. DOI: [10.1021/acs.biochem.4c00529](https://doi.org/10.1021/acs.biochem.4c00529)
+
 ## Contents ##
 
 - [Contents](#contents)
@@ -15,6 +19,7 @@ Developed by Conor B. Abraham in the Straub Group at Boston University, Departme
   - [Hydrogen Bonds](#hydrogen-bonds)
   - [Salt Bridges](#salt-bridges)
   - [Pi Stacking Interactions](#pi-stacking-interactions)
+  - [Water Bridges](#water-bridges)
   - [Probabilities](#probabilities)
     - [Interlayer Interactions](#interlayer-interactions)
     - [Intralayer Interactions](#intralayer-interactions)
@@ -111,6 +116,10 @@ At this time, the calculation of pi stacking interactions depends upon residue a
 | Tryptophan | TRP | CG CD1, NE1, CE2, CD2 |
 
 > **Table 2:** The default residue and atom names used to select the aromatic rings that could participate in a pi stacking interaction. *NOTE: Notice that the 5-membered ring (not the 6-membered ring) is used for Tryptophan. This follows the guidance of Zhao et al (2015) [[13]](#references).*
+
+### Water Bridges ###
+
+Water bridges are calculated by first calculating all water--water and water--protein hydrogen bonds. A graph network is set up using Scipy with protein atoms and water molecules and as nodes. Djikstra's algorithm [[14]](#references) is then used to identify protein sites connected by water bridges of an order less than a user defined cutoff (Default: 5). This approach to calculating water bridges around a protein follows that of Bridge2, a program developed by Ana-Nicoleta Bondar and Co. [[15,16]](#references) Please note that the tutorials have not yet been updated to include water bridges. 
 
 ### Probabilities ###
 
@@ -220,7 +229,7 @@ The `calc` subcommand is used to compute the intermolecular forces within the fi
 |--- |--- |--- |
 | `-i/--input_file filename` | None | Input file containing parameters for calculation job. All commandline arguments can be specified in this file for user convenience. Any parameters given at the commandline will override their counterpart in this file. See **[Additional Help:](#additional-help) Input File Help** for more information. |
 | `-c/--checkpoint_file filename ...` | None | Checkpoint file(s) to resume from last saved checkpoint(s). These checkpoint file(s) includes the original parameters for the run. Any commandline arguments that will effect the results of the run (e.g. trajectory_file, topology_file, n_protofilaments, omit_layers, etc.) will be ignored if a checkpoint file is provided. Cannot be set if `-i/--input_file` is. |
-| `-f/--topology_file filename` | None | Topology file containing atom charges, bonds, and Segment IDs (e.g TPR). If no trajectory file is provided, the topology file must also contain coordinate information. The order of the segments is very important. See [MDAnalysis User Guide](https://userguide.mdanalysis.org/stable/formats/index.html) for valid file formats. *IMPORTANT: A specific segment ordering is required. See* **[Additional Help:](#additional-help) Topology File Setup** *below for details.* |
+| `-t/--topology_file filename` | None | Topology file containing atom charges, bonds, and Segment IDs (e.g TPR). If no trajectory file is provided, the topology file must also contain coordinate information. The order of the segments is very important. See [MDAnalysis User Guide](https://userguide.mdanalysis.org/stable/formats/index.html) for valid file formats. *IMPORTANT: A specific segment ordering is required. See* **[Additional Help:](#additional-help) Topology File Setup** *below for details.* |
 | `-f/--trajectory_file filename ...` | None | Trajectory file(s) containing coordinate information (e.g. XTC, TRR, PDB). If multiple are provided, the systems must match exactly. If none is provided, the coordinates will be collected from the topology file. See [MDAnalysis User Guide](https://userguide.mdanalysis.org/stable/formats/index.html) for valid file formats.|
 </details>
 
@@ -241,7 +250,7 @@ The `calc` subcommand is used to compute the intermolecular forces within the fi
 
 | Argument | Default | Description |
 |--- |--- |--- |
-| `--calctype {ALL, HB, SB, PI, HB+SB, HB+PI, SB+PI}` | ALL | What type of interaction to compute. Options are ALL, HB, SB, PI, HB+SB, HB+PI, and SB+PI. ALL computes all, options with HB computes hydrogen bonds, options with SB computes salt bridges, and options with PI computes pi stacking interactions. |
+| `--calctype {ALL, HB, SB, PI, WB, HB+SB, HB+PI, SB+PI, HB+WB, SB+WB, PI+WB, HB+SB+WB, HB+PI+WB, SB+PI+WB, HB+SB+PI}` | ALL | What type of interaction to compute. Options are ALL, HB, SB, PI, WB, HB+SB, HB+PI, SB+PI, HB+WB, SB+WB, PI+WB, HB+SB+WB, HB+PI+WB, SB+PI+WB, and HB+SB+PI. ALL computes all, options with HB computes hydrogen bonds, options with SB computes salt bridges, options with PI computes pi stacking interactions, and options with WB computes water bridges. |
 | `-n/--n_protofilaments int` (int $\gt$ -2)| Required | The number of protofilaments in the fibril (i.e. how many segments are in each layer of the fibril). |
 | `--omit_layers int` (int $\geq$ 0) | 0 | How many layers on each end of the fibril to omit from analysis. This is especially important for analysis of simulation trajectories of a finite fibril model as delamination at the ends of the fibril will bias the results.|
 | `--hbond_distance_cutoff float` (float $\gt$ 0) | 3.5Å | The cutoff distance (in Å) for hydrogen bonds. The distance between a potential donor and potential acceptor must be less than this value to be counted as a hydrogen bond. |
@@ -256,6 +265,7 @@ The `calc` subcommand is used to compute the intermolecular forces within the fi
 | `--pistacking_tyr_sel MDAnalysis_Selection_String` | (resname TYR and name CG CD2 CE2 CZ CE1 CD1) | The MDAnalysis selection command for tyrosine rings. For help formatting this string, see the [MDAnalysis Documentation](https://docs.mdanalysis.org/stable/documentation_pages/selections.html). |
 | `--pistacking_his_sel MDAnalysis_Selection_String` | (resname HSD HSE HSP and name CG CD2 NE2 CE1 ND1) | The MDAnalysis selection command for histidine rings. For help formatting this string, see the [MDAnalysis Documentation](https://docs.mdanalysis.org/stable/documentation_pages/selections.html). |
 | `--pistacking_trp_sel MDAnalysis_Selection_String` | (resname TRP and name CG CD1 NE1 CE2 CD2) | The MDAnalysis selection command for tryptophan rings (should be for the 5-membered ring). For help formatting this string, see the [MDAnalysis Documentation](https://docs.mdanalysis.org/stable/documentation_pages/selections.html). |
+| `--waterbridge_max_order int` (2 < Int < 10) | 2 | The maximum order water bridges to calculate (i.e. the maximum number of hydrogen bonds bridging two residues). Please be aware that increasing this value will lead to much slower calculations. |
 | `--nprocs int` (int $\geq$-2) | 1 | How many processors to use for hydrogen bond and pi stacking calculations. Use -1 to use all available processors, -2 to use half of the available processors, or some positive integer. |
 </details>
 
@@ -348,8 +358,8 @@ nprocs                          = # The number of processors to use
 <summary>A Tip to Speed Up the Calculation</summary>
 
 Depending on the length of your trajectory and the size of your system the calculation of hydrogen bonds, salt bridges, and pi stacking interactions can take a long time. To speed this up, you can compute each
-interaction type separately. Also, note that the calculation of hydrogen bonds and salt bridges can be parallelized, but the calculation of
-pi stacking interactions can only be completed on a single processor (because the pi stacking calculation is relatively fast). These separate
+interaction type separately. Also, note that the calculation of hydrogen bonds, salt bridges, and water bridges can be parallelized, but the calculation of
+pi stacking interactions can only be completed on a single processor (because the pi stacking calculation is relatively fast). Also note that until I have time to improve the algorithm for computing water bridges, this calculation is very memory expensive, limiting parallelization. These separate
 calculations can be run using `--calctype` and `--nprocs`.
 </details>
 
@@ -368,6 +378,8 @@ After the intermolecular forces have been computed with the `calc` subcommand, t
 |--- |--- |--- |
 | `-c/--checkpoint_file filename ...` | None | Checkpoint file(s) from finished calc job or previous map job. |
 | `-i/--input_file filename` | None | Input file containing parameters for mapping job. All required commandline arguments and additional formatting parameters can alternatively be specified in this file. Arguments given at the commandline will override any of their counterparts given in this file. See **[Additional Help:](#additional-help-1) Input File Help & Additional Parameters** below for a list of parameters that can be set in this file.|
+| `-f/--trajectory_file filename ...` | None | Trajectory file(s) containing coordinate information (e.g. XTC, TRR, PDB). If multiple are provided, the systems must match exactly. If none is provided, the coordinates will be collected from the topology file. See [MDAnalysis User Guide](https://userguide.mdanalysis.org/stable/formats/index.html) for valid file formats.|
+| `-t/--topology_file filename` | None | Topology file containing atom charges, bonds, and Segment IDs (e.g TPR). If no trajectory file is provided, the topology file must also contain coordinate information. The order of the segments is very important. See [MDAnalysis User Guide](https://userguide.mdanalysis.org/stable/formats/index.html) for valid file formats. *IMPORTANT: A specific segment ordering is required. See* **[Additional Help:](#additional-help) Topology File Setup** *under calc help for details.* |
 </details>
 
 <details>
@@ -375,7 +387,8 @@ After the intermolecular forces have been computed with the `calc` subcommand, t
 
 | Argument | Default | Description |
 |--- |--- |--- |
-| `-o/--figure_file filename` | [output_directory]/fibmap.png | Path to and name of output image file. Can be any filetype that can be written by matplotlib. If using default, [output_directory] is the output directory specified for the previous calc run. |
+| `-p/--figure_file filename` | [output_directory]/fibmap.png | Path to and name of output image file. Can be any filetype that can be written by matplotlib. If using default, [output_directory] is the output directory specified [output_directory] is the output directory specified here or in a checkpoint file. |
+| `-o/--output_directory path` | Working Dir. | Directory to write files to. This directory must already exist. This parameter is included in checkpoint files. Default is working directory. |
 | `--[no]log` | nolog | If log, save standard output to a log file. This option is better than manually passing stdout to a file at the commandline, as it will not write progress bars to the file. |
 | `--[no]backup` | backup | If backup, past logfiles and past figure file images will be backed up. |
 | `--showfig` | False | If used, the figure image will be opened after it is saved. |
@@ -386,11 +399,14 @@ After the intermolecular forces have been computed with the `calc` subcommand, t
 
 | Argument | Default | Description |
 |--- |--- |--- |
-| `--p_cutoff float` (0 $\leq$ float $\leq$ 1) | 0.5 | Probability cutoff for hydrogen bonds, salt bridges, and pi stacking interactions. If the probability of a given interaction is less than this value then it will not be displayed on the map. (TIP: To hide all interactions, set this value to 1 and do not set `--hbond_n_cutoff`, `--hbond_p_cutoff`, `--saltbridge_p_cutoff`, or `--pistacking_p_cutoff`). |
-| `--hbond_p_cutoff float` (0 $\leq$ float $\leq$ 1) | None | Individually set the probability cutoff for hydrogen bonds. If not set, p_cutoff will be used. (TIP: To hide all hydrogen bonds, set this value to 1 and do not set `--hbond_n_cutoff`). |
+| `-n/--n_protofilaments int` (int $\gt$ -2)| Required | The number of protofilaments in the fibril (i.e. how many segments are in each layer of the fibril). This parameter is included in and satisfied by checkpoint files. |
+| `--omit_layers int` (int $\geq$ 0) | 0 | How many layers on each end of the fibril to omit from analysis. This is especially important for analysis of simulation trajectories of a finite fibril model as delamination at the ends of the fibril will bias the results. This parameter is included in checkpoint files.|
+| `--p_cutoff float` (0 $\leq$ float $\leq$ 1) | 0.5 | Probability cutoff for hydrogen bonds, salt bridges, pi stacking interactions, and water bridges. If the probability of a given interaction is less than this value then it will not be displayed on the map. |
+| `--hbond_p_cutoff float` (0 $\leq$ float $\leq$ 1) | None | Individually set the probability cutoff for hydrogen bonds. If not set, p_cutoff will be used. |
 | `--hbond_n_cutoff float` (float $\geq$ 0) | None | If set, the average number of hydrogen bonds per frame formed between two groups will be used to determine whether or not a hydrogen bond is shown on the figure instead of a probability cutoff. If the average number of hydrogen bonds per frame is less than this cutoff then the hydrogen bond will not be displayed on the map. |
-| `--saltbridge_p_cutoff float` (0 $\leq$ float $\leq$ 1) | None | Individually set the probability cutoff for salt bridges. If not set, p_cutoff will be used. (TIP: To hide all salt bridges, set this value to 1). |
-| `--pistacking_p_cutoff float` (0 $\leq$ float $\leq$ 1) | None | Individually set the probability cutoff for pi stacking interactions. If not set, p_cutoff will be used. (TIP: To hide all pi stacking interactions, set this value to 1). |
+| `--saltbridge_p_cutoff float` (0 $\leq$ float $\leq$ 1) | None | Individually set the probability cutoff for salt bridges. If not set, p_cutoff will be used. |
+| `--pistacking_p_cutoff float` (0 $\leq$ float $\leq$ 1) | None | Individually set the probability cutoff for pi stacking interactions. If not set, p_cutoff will be used. |
+| `--waterbridge_p_cutoff` (0 $\leq$ float $\leq$ 1) | None | Individually set the probability cutoff for waterbridges. If not set, p_cutoff will be used. |
 | `--[no]legend` | legend | If legend, a legend will be included in the figure. |
 | `--nprocs int` (int $\geq$ -2) | 1 | How many processors to use for the position calculation. Use -1 to use all available processors, -2 to use half of the available processors, or some positive integer. |
 </details>
@@ -438,6 +454,8 @@ The above parameters (and the additional parameters below) can be provided in an
 | `saltbridge_color_3 = color` | white | Color of dashed line for salt bridges that are both intra- and inter-layer. |
 | `pistacking_color_1 = color` | gray | Line color for pi stacking interaction lines and edge color for pi stacking interaction markers. |
 | `pistacking_color_2 = color` | white | Fill color for pi stacking interaction markers and dashed line color for pi stacking interactions that are both intra-and inter-layer. |
+| `waterbridge_color_1 = color` | steelblue | Line color for water bridge lines. |
+| `waterbridge_color_1 = color` | white | line color for waterbridges that are both intra-and inter-layer. |
 | `water_color = color` | powderblue | Color of water regions. |
 | `water_opacity = float` (0 $\leq$ float $\leq$ 1) | 0.5 | Opacity of water regions. |
 | `zipper_color = color` | tan | Color of hydrophobic zipper regions. |
@@ -561,24 +579,6 @@ OR you can define them on the same line:
 ```
 water_region = 1:22-50 2:22-50
 ```
-</details>
-
-<details>
-<summary>Bypassing the checkpoint system</summary>
-
-I implemented the checkpoint system to ensure that users do not use a different system for the `calc` step and the `map` step. It also makes it so that the system does not need to be redescribed when running the `map` step. Let's say, however, that you don't care about the intermolecular forces and you just want to make a nice graphic of a layer of your fibril. In that case, you can just create a dummy checkpoint file (it's just a text file with several key parameters defined). Here's a template:
-
-```
-trajectory_file = # The name of the trajectory file
-topology_file = # The name of the topology file
-output_directory = # The output directory path
-n_protofilaments = # The number of protofilaments
-omit_layers = # The number of layers to omit on each end of the fibril
-```
-
-> *NOTE: All of these parameters are described in [calc: Parameters](#parameters)*
-
-Alternatively, you could perform the calculation step on a single frame PDB of your fibril (will only take a second), and then run `map` with `--p_cutoff 1.0`.
 </details>
 
 ### traj ###
@@ -946,6 +946,9 @@ A sample trajectory with its topology file is provided in the tutorials/tutorial
 11.  Humphrey, W.; Dalke, A.; Schulten, K. VMD: visual molecular dynamics. *Journal of molecular graphics* **1996**, *14*, 33–38. https://doi.org/10.1016/0263-7855(96)00018-5
 12.  Liberta, F.; Loerch, S.; Rennegarbe, M.; Schierhorn, A.; Westermark, P.; Westermark, G. T.; Hazenberg, B. P.; Grigorieff, N.; F ̈andrich, M.; Schmidt, M. *Nature communications* **2019**, *10*, 1–10. https://doi.org/10.1038/s41467-019-09033-z
 13. Zhao, Y., Li, J., Gu, H. et al. *Interdiscip Sci Comput Life Sci* **2015**, *7*, 211–220. https://doi.org/10.1007/s12539-015-0263-z
+14. Dijkstra, E. W. *Numerische Mathematik* **1959**, *1*, 269–271. https://doi.org/10.1007%2FBF01386390
+15. Siemers, M.; Lazaratos, M.; Karathanou, K.; Guerra, F.; Brown, L. S.; Bondar, A. N. *Journal of Chemical Theory and Computation* **2019**, *15*, 6781–6798. https://doi.org/10.1021/acs.jctc.9b00697
+16. Siemers, M.; Bondar, A. N. *Journal of Chemical Information and Modeling* **2021**, *61*, 2998–3014. https://doi.org/10.1021/acs.jcim.1c00306
    
 <p align="left">(<a href="#top">back to top</a>)</p>
 

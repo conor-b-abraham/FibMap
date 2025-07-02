@@ -634,6 +634,24 @@ def _positive_int(p, s):
         raise SystemExit(f"Error: parameter {p}: Expected positive integer, got negative: {i}")
     return i
 
+def _valid_max_order(p, s):
+    '''
+    Check if value is positive integer between 3 and 9 (inclusive)
+    
+    Parameters
+    ----------
+    p : Name of parameter
+    s : Value of parameter
+    '''
+    try:
+        i = int(s)
+    except ValueError:
+        raise SystemExit(f"Error: parameter {p}: Expected positive integer between 3 and 9, got {s!r}.")
+    
+    if i < 3 or i > 9:
+        raise SystemExit(f"Error: parameter {p}: Expected positive integer between 3 and 9, got: {i}")
+    return i
+
 def _nonnegative_int(p, s):
     '''
     Check if value is nonnegative integer
@@ -852,12 +870,12 @@ def _valid_calctype(p, s):
     p : Str
         Name of parameter
     s : Str
-        Value of parameter (ALL, HB, SB, PI, HB+SB, HB+PI, or SB+PI)
+        Value of parameter (ALL, HB, SB, PI, WB, HB+SB, HB+PI, SB+PI, HB+WB, SB+WB, PI+WB, HB+SB+WB, HB+PI+WB, SB+PI+WB, and HB+SB+PI)
     '''
-    if s.upper() in ["ALL", "HB", "SB", "PI", "HB+SB", "HB+PI", "SB+PI"]:
+    if s.upper() in ["ALL", "HB", "SB", "PI", "WB", "HB+SB", "HB+PI", "SB+PI", "HB+WB", "SB+WB", "PI+WB", "HB+SB+WB", "HB+PI+WB", "SB+PI+WB", "HB+SB+PI"]:
         s = s.upper()
     else:
-        raise SystemExit(f"Error: parameter {p}: Invalid calctype, {s}. Valid options are: ALL, HB, SB, PI, HB+SB, HB+PI, or SB+PI.")
+        raise SystemExit(f"Error: parameter {p}: Invalid calctype, {s}. Valid options are: ALL, HB, SB, PI, WB, HB+SB, HB+PI, SB+PI, HB+WB, SB+WB, PI+WB, HB+SB+WB, HB+PI+WB, SB+PI+WB, and HB+SB+PI.")
     
     return s
 
@@ -870,7 +888,7 @@ def _valid_sbselmode(p, s):
     p : Str
         Name of parameter
     s : Str
-        Value of parameter (ALL, HB, SB, PI, HB+SB, HB+PI, or SB+PI)
+        Value of parameter (auto or manual)
     '''
     if s.upper() in ["AUTO", "MANUAL"]:
         s = s.upper()
@@ -905,6 +923,55 @@ def _valid_cpu_int(p, s):
         i = int(np.floor(ncpus/2))
     return i
 
+def _read_input_line(line, li, input_file):
+    '''
+    Read line of input file
+
+    Parameters
+    ----------
+    line : Str
+        A line in an input file
+    li : Int
+        The line number
+    input_file : Str
+        The name of the input file
+
+    Returns
+    -------
+    key : Str
+        parameter name
+    value : Str
+        parameter value
+    '''
+    if "#" in line: # Get rid of comments
+        line = line[:line.find("#")]
+    line = line.strip() # Strip off whitespace and new lines
+    if len(line) == 0:
+        key = None
+        value = None
+    elif "=" in line:
+        key_value = [i.strip() for i in line.split("=")] # Split key and value and remove spaces around the =
+        
+        if len(key_value) != 2: # Check to make sure only 1 = was provided
+            raise SystemExit(f"Parameter Error: {input_file} (line {li}): could not understand line: {line}")
+
+        key = key_value[0] # Get key
+        if any(c.isspace() for c in key_value[1]): # Split list at whitespace and get value
+            value = key_value[1].split() 
+            for i, v in enumerate(value):
+                if v.upper() == "FALSE": # Handle Boolean
+                    value[i] = False
+                elif v.upper() == "TRUE":
+                    value[i] = True
+        else:
+            value = key_value[1]
+            if value.upper() == "FALSE": # Handle Boolean
+                value = False
+            elif value.upper() == "TRUE":
+                value = True
+
+    return key, value
+
 class Params:
     '''
     Reads and stores run parameters from commandline args, input_file, and checkpoint_file
@@ -926,7 +993,7 @@ class Params:
     -------
     get_loglines()
         Retrieve and reset loglines following initialization.
-    set_filename(hb_unprocessed_file=None, hb_processed_file=None, sb_unprocessed_file=None, sb_processed_file=None, pi_unprocessed_file=None, pi_processed_file=None, map_positions_file=None)
+    set_filename(hb_unprocessed_file=None, hb_processed_file=None, sb_unprocessed_file=None, sb_processed_file=None, pi_unprocessed_file=None, pi_processed_file=None, wb_unprocessed_hbond_file=None, wb_unprocessed_file=None, wb_processed_file=None, map_positions_file=None)
         Set the name of a file and add to checkpoint file
     '''
     def _get_cmdargs(self, cmdin):
@@ -948,7 +1015,8 @@ class Params:
             "-c":"--checkpoint_file",
             "-f":"--trajectory_file",
             "-t":"--topology_file",
-            "-o":{"calc":"--output_directory", "map":"--figure_file", "traj":"--figure_file"}[self.command],
+            "-o":{"calc":"--output_directory", "map":"--output_directory", "traj":"--figure_file"}[self.command],
+            "-p":"--figure_file",
             "-n":"--n_protofilaments",
             "-v":"--verbose"
         }
@@ -959,55 +1027,6 @@ class Params:
                 flag = abbrevs[flag]
             cmdargs.append(flag[2:]) # Crop off the "--"
         return cmdargs
-            
-    def _read_input_line(self, line, li, input_file):
-        '''
-        Read line of input file
-
-        Parameters
-        ----------
-        line : Str
-            A line in an input file
-        li : Int
-            The line number
-        input_file : Str
-            The name of the input file
-
-        Returns
-        -------
-        key : Str
-            parameter name
-        value : Str
-            parameter value
-        '''
-        if "#" in line: # Get rid of comments
-            line = line[:line.find("#")]
-        line = line.strip() # Strip off whitespace and new lines
-        if len(line) == 0:
-            key = None
-            value = None
-        elif "=" in line:
-            key_value = [i.strip() for i in line.split("=")] # Split key and value and remove spaces around the =
-            
-            if len(key_value) != 2: # Check to make sure only 1 = was provided
-                raise SystemExit(f"Parameter Error: {input_file} (line {li}): could not understand line: {line}")
-
-            key = key_value[0] # Get key
-            if any(c.isspace() for c in key_value[1]): # Split list at whitespace and get value
-                value = key_value[1].split() 
-                for i, v in enumerate(value):
-                    if v.upper() == "FALSE": # Handle Boolean
-                        value[i] = False
-                    elif v.upper() == "TRUE":
-                        value[i] = True
-            else:
-                value = key_value[1]
-                if value.upper() == "FALSE": # Handle Boolean
-                    value = False
-                elif value.upper() == "TRUE":
-                    value = True
-
-        return key, value
 
     def _inputfile_reader(self, input_file):
         '''
@@ -1022,7 +1041,7 @@ class Params:
         found_keys = []
         with open(input_file) as file:
             for li, line in enumerate(file.readlines()):
-                key, value = self._read_input_line(line, li, input_file)
+                key, value = _read_input_line(line, li, input_file)
                 if key is None and value is None:
                     continue
 
@@ -1077,9 +1096,12 @@ class Params:
             'hb_processed_file':[],
             'sb_processed_file':[],
             'pi_processed_file':[],
+            'wb_processed_file':[],
             'hb_unprocessed_file':[],
             'sb_unprocessed_file':[],
             'pi_unprocessed_file':[],
+            'wb_unprocessed_file':[],
+            'wb_unprocessed_hbond_file':[],
             'map_positions_file':[],
             'traj_results_file':[]
         }
@@ -1087,7 +1109,7 @@ class Params:
             filename = _valid_file("checkpoint_file", filename)
             with open(filename) as file:
                 for li, line in enumerate(file.readlines()):
-                    key, value = self._read_input_line(line, li, filename)
+                    key, value = _read_input_line(line, li, filename)
                     if key is None and value is None:
                         continue
 
@@ -1109,6 +1131,7 @@ class Params:
         args : ArgParse.parsed_args
             Parsed args from argparse
         '''
+        used_exclusives = {"backup":False, "nobackup":False, "log": False, "nolog":False, "saveraw":False, "nosaveraw":False, "hbond_n_cutoff": False, "hbond_p_cutoff": False, "legend": False, "nolegend": False}
         found_keys = []
         for key in self.__cmdargs:
             value = getattr(args, key)
@@ -1128,6 +1151,14 @@ class Params:
                             self.__param_info[key][0] += value
                 else: # Takes only one argument
                     self.__param_info[key][0] = value
+                
+                if key in used_exclusives.keys():
+                    used_exclusives[key] = True
+                    if key[:2] == "no":
+                        self.__param_info[key[2:]][0] = not self.__param_info[key][0]
+                    else:
+                        self.__param_info[f"no{key}"][0] = not self.__param_info[key][0]
+                
                 found_keys.append(key)
     # --------------------------------------------------------------------------------
 
@@ -1152,7 +1183,7 @@ class Params:
         self.__param_info = {
             "trajectory_file":[[None], _valid_file],
             "topology_file":["REQ", _valid_file],
-            "checkpoint_file":[{"calc":[None], "map":["REQ"], "traj":["REQ"]}[self.command], _valid_file],
+            "checkpoint_file":[{"calc":[None], "map":[None], "traj":["REQ"]}[self.command], _valid_file],
             "n_protofilaments":["REQ", _positive_int],
             "omit_layers":[0, _nonnegative_int],
             "output_directory":[os.getcwd(), _valid_path],
@@ -1166,6 +1197,9 @@ class Params:
             "sb_unprocessed_file":[None, _valid_file],
             "pi_processed_file":[None, _valid_file],
             "pi_unprocessed_file":[None, _valid_file],
+            "wb_processed_file":[None, _valid_file],
+            "wb_unprocessed_hbond_file":[None, _valid_file],
+            "wb_unprocessed_file":[None, _valid_file],
             "map_positions_file":[None, _valid_file],
             "traj_results_file":[None, _valid_file]
         }
@@ -1199,6 +1233,7 @@ class Params:
                 "pistacking_tyr_sel":["(resname TYR and name CG CD2 CE2 CZ CE1 CD1)", _selstring],
                 "pistacking_his_sel":["(resname HSD HSE HSP and name CG CD2 NE2 CE1 ND1)", _selstring],
                 "pistacking_trp_sel":["(resname TRP and name CG CD1 NE1 CE2 CD2)", _selstring],
+                "waterbridge_max_order":[2, _valid_max_order]
                 }}
         elif self.command == "map":
             self.__param_info = {**self.__param_info, **{
@@ -1207,6 +1242,7 @@ class Params:
                 "hbond_p_cutoff":[None, _nonnegative_frac],
                 "saltbridge_p_cutoff":[None, _nonnegative_frac],
                 "pistacking_p_cutoff":[None, _nonnegative_frac],
+                "waterbridge_p_cutoff":[None, _nonnegative_frac],
                 "transparent_background":[False, _valid_bool],
                 "numbered_residues":[False, _valid_bool],
                 "water_region":[[None], _valid_regions],
@@ -1229,6 +1265,8 @@ class Params:
                 "saltbridge_color_3":["white", _valid_color_nochain],
                 "pistacking_color_1":["gray", _valid_color_nochain],
                 "pistacking_color_2":["white", _valid_color_nochain],
+                "waterbridge_color_1":["steelblue", _valid_color_nochain],
+                "waterbridge_color_2":["white", _valid_color_nochain],
                 "water_color":["powderblue", _valid_color_nochain],
                 "water_opacity":[0.5, _positive_float],
                 "zipper_color":["tan", _valid_color_nochain],
@@ -1256,7 +1294,7 @@ class Params:
             self._compare_checkpoints() # Check to make sure there are not conflicts
             for cptfile in self.__param_info["checkpoint_file"][0]:
                 self._inputfile_reader(cptfile)
-        elif self.command in ["map", "traj"]: # Checkpoint file is required for map and traj subcommands
+        elif self.command in ["traj"]: # Checkpoint file is required for map and traj subcommands
             raise SystemExit(f"Parameter Error: -c / --checkpoint_file: Checkpoint file is required for the {self.command} command but was not provided.")
         
         # Check to make sure parameters are valid
@@ -1308,6 +1346,7 @@ class Params:
             self.use_hbond_n_cutoff = False
             self.saltbridge_cutoff = self.p_cutoff
             self.pistacking_cutoff = self.p_cutoff
+            self.waterbridge_cutoff = self.p_cutoff
             if self.hbond_n_cutoff is not None:
                 self.use_hbond_n_cutoff = True
                 self.hbond_cutoff = self.hbond_n_cutoff
@@ -1317,11 +1356,14 @@ class Params:
                 self.saltbridge_cutoff = self.saltbridge_p_cutoff
             if self.pistacking_p_cutoff is not None:
                 self.pistacking_cutoff = self.pistacking_p_cutoff
+            if self.waterbridge_p_cutoff is not None:
+                self.waterbridge_cutoff = self.waterbridge_p_cutoff
             del self.p_cutoff
             del self.hbond_n_cutoff
             del self.hbond_p_cutoff
             del self.saltbridge_p_cutoff
             del self.pistacking_p_cutoff
+            del self.waterbridge_p_cutoff
         
         # Reconcile nobackup/backup and log/nolog and saveraw/nosaveraw and legend/nolegend
         if self.backup == True:
@@ -1400,6 +1442,12 @@ class Params:
                     cpt.write(f"pi_processed_file = {self.pi_processed_file}\n")
                 if self.command in ['calc', 'traj'] and self.pi_unprocessed_file is not None:
                     cpt.write(f"pi_unprocessed_file = {self.pi_unprocessed_file}\n")
+                if self.wb_processed_file is not None:
+                    cpt.write(f"wb_processed_file = {self.wb_processed_file}\n")
+                if self.command in ['calc', 'traj'] and self.wb_unprocessed_file is not None:
+                    cpt.write(f"wb_unprocessed_file = {self.wb_unprocessed_file}\n")
+                if self.command in ['calc', 'traj'] and self.wb_unprocessed_hbond_file is not None:
+                    cpt.write(f"wb_unprocessed_hbond_file = {self.wb_unprocessed_hbond_file}\n")
                 if self.command == 'map' and self.map_positions_file is not None:
                     cpt.write(f"map_positions_file = {self.map_positions_file}\n")
                 if self.command == 'traj' and self.traj_results_file is not None:
@@ -1407,13 +1455,13 @@ class Params:
     
     def __str__(self):
         types = {
-            "Input": ["trajectory_file","topology_file","checkpoint_file","hb_processed_file","hb_unprocessed_file","sb_processed_file","sb_unprocessed_file","pi_processed_file","pi_unprocessed_file","map_positions_file"],
+            "Input": ["trajectory_file","topology_file","checkpoint_file","hb_processed_file","hb_unprocessed_file","sb_processed_file","sb_unprocessed_file","pi_processed_file","pi_unprocessed_file", "wb_processed_file","wb_unprocessed_file", "wb_unprocessed_hbond_file", "map_positions_file"],
             "Output": ["output_directory","nosaveraw","saveraw","verbose","nprocs", "log","nolog","nobackup","backup","figure_file","showfig", "output_log", "output_cpt"],
-            "Options": ["n_protofilaments","omit_layers","calctype","hbond_distance_cutoff","hbond_angle_cutoff","saltbridge_selection_mode","saltbridge_anion_charge_cutoff","saltbridge_cation_charge_cutoff","saltbridge_anion_sel","saltbridge_cation_sel","saltbridge_distance_cutoff","pistacking_phe_sel","pistacking_tyr_sel","pistacking_his_sel","pistacking_trp_sel"],
+            "Options": ["n_protofilaments","omit_layers","calctype","hbond_distance_cutoff","hbond_angle_cutoff","saltbridge_selection_mode","saltbridge_anion_charge_cutoff","saltbridge_cation_charge_cutoff","saltbridge_anion_sel","saltbridge_cation_sel","saltbridge_distance_cutoff","pistacking_phe_sel","pistacking_tyr_sel","pistacking_his_sel","pistacking_trp_sel", "waterbridge_max_order"],
             "Figure Options":["figure_width","figure_height","legend","figure_dpi","transparent_background","numbered_residues", "fontsize"],
             "Regions": ["water_region","zipper_region"],
-            "Cutoffs": ["p_cutoff","hbond_n_cutoff","hbond_p_cutoff","saltbridge_p_cutoff","pistacking_p_cutoff"],
-            "Colors": ["acidic_color","acidic_label_color","basic_color","basic_label_color","polar_color","polar_label_color","nonpolar_color","nonpolar_label_color","backbone_color","hbond_color_1","hbond_color_2","saltbridge_color_1","saltbridge_color_2","saltbridge_color_3","pistacking_color_1","pistacking_color_2","water_color","water_opacity","zipper_color","zipper_opacity","total_color", "interlayer_color", "intralayer_color"]}
+            "Cutoffs": ["p_cutoff","hbond_n_cutoff","hbond_p_cutoff","saltbridge_p_cutoff","pistacking_p_cutoff","waterbridge_p_cutoff"],
+            "Colors": ["acidic_color","acidic_label_color","basic_color","basic_label_color","polar_color","polar_label_color","nonpolar_color","nonpolar_label_color","backbone_color","hbond_color_1","hbond_color_2","saltbridge_color_1","saltbridge_color_2","saltbridge_color_3","pistacking_color_1","pistacking_color_2","waterbridge_color_1","waterbridge_color_2","water_color","water_opacity","zipper_color","zipper_opacity","total_color", "interlayer_color", "intralayer_color"]}
         
         return_string = f"  - command: {self.command}\n"
         for section, params in types.items():
@@ -1447,6 +1495,7 @@ class Params:
     def set_filename(self, hb_unprocessed_file=None, hb_processed_file=None, 
                      sb_unprocessed_file=None, sb_processed_file=None, 
                      pi_unprocessed_file=None, pi_processed_file=None, 
+                     wb_unprocessed_file=None, wb_unprocessed_hbond_file=None, wb_processed_file=None, 
                      map_positions_file=None, traj_results_file=None):
         '''
         Set the name of a file and add to checkpoint file
@@ -1465,6 +1514,12 @@ class Params:
             the new name of the unprocessed pi stacking interaction file
         pi_processed_file : Str or None [Default is None]
             the new name of the processed pi stacking interaction file
+        wb_unprocessed_file : Str or None [Default is None]
+            the new name of the unprocessed water bridge file
+        wb_unprocessed_hbond_file : Str or None [Default is None]
+            the new name of the unprocessed water bridge h-bond file
+        wb_processed_file : Str or None [Default is None]
+            the new name of the processed water bridge file
         map_positions_file : Str or None [Default is None]
             the new name of the map positions file
         traj_results_file : Str or None [Default is None]
@@ -1494,6 +1549,15 @@ class Params:
         if pi_processed_file is not None:
             self.pi_processed_file = pi_processed_file
             _add_to_checkpoint("pi_processed_file", pi_processed_file, self.output_cpt)
+        if wb_unprocessed_hbond_file is not None:
+            self.wb_unprocessed_hbond_file = wb_unprocessed_hbond_file
+            _add_to_checkpoint("wb_unprocessed_hbond_file", wb_unprocessed_hbond_file, self.output_cpt)
+        if wb_unprocessed_file is not None:
+            self.wb_unprocessed_file = wb_unprocessed_file
+            _add_to_checkpoint("wb_unprocessed_file", wb_unprocessed_file, self.output_cpt)
+        if wb_processed_file is not None:
+            self.wb_processed_file = wb_processed_file
+            _add_to_checkpoint("wb_processed_file", wb_processed_file, self.output_cpt)
         if map_positions_file is not None:
             self.map_positions_file = map_positions_file
             _add_to_checkpoint("map_positions_file", map_positions_file, self.output_cpt)

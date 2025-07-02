@@ -76,7 +76,7 @@ class SystemInfo:
         
         
         # CONSTRUCT 'MATCHED_RESIDS' ATTRIBUTE
-        # future: This needs to consider that the residues in each protofilament could be different (unlikely, but I think it's possible)
+        # future: This needs to consider that the residues in each protofilament could be different
         self.segment_resids = ag.segments[0].residues.resids
         nres_per_seg = ag.segments[0].residues.n_residues
         self.matched_resids = np.zeros((ag.residues.n_residues, 2), dtype=int).astype(str)

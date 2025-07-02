@@ -25,7 +25,7 @@ def main():
     # ------------------------------------------------------------------------------
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=LOG.get_title()+LOG.output_formatter(f"\n\nThis program was written to compute and visualize the hydrogen bonds, salt bridges, and pistacking interactions within an amyloid fibril from either a PDB file or a molecular dynamics trajectory. To use it, first compute the interactions using FibMap.py calc and then create the visualization with FibMap.py map. You can also perform additional trajectory analysis with FibMap.py traj. For more thorough usage and tutorials please check the github repo: {github_link}")
+        description=LOG.get_title()+LOG.output_formatter(f"\n\nThis program was written to compute and visualize the hydrogen bonds, salt bridges, pistacking interactions, and water bridges within an amyloid fibril from either a PDB file or a molecular dynamics trajectory. To use it, first compute the interactions using FibMap.py calc and then create the visualization with FibMap.py map. You can also perform additional trajectory analysis with FibMap.py traj. For more thorough usage and tutorials please check the github repo: {github_link}")
         )
     parser._optionals.title = 'HELP'
     subparsers = parser.add_subparsers(
@@ -64,7 +64,7 @@ def main():
                                                        ███████████████    ███████████████
 
                         III. A TIP TO SPEED UP CALCULATION:
-                        The calculation of hydrogen bonds, salt bridges, and pi stacking interactions can take a long time. To speed this up, you can compute each interaction type separately. Also, note that the calculation of hydrogen bonds and salt bridges can be parallelized, but the calculation of pi stacking interactions can only be completed on a single processor (because the pi stacking calculation is relatively fast). These separate calculations can be run using --calctype and --nprocs. 
+                        The calculation of hydrogen bonds, salt bridges, pi stacking interactions, and water bridges can take a long time. To speed this up, you can compute each interaction type separately. Also, note that the calculation of hydrogen bonds, salt bridges, and water bridges can be parallelized, but the calculation of pi stacking interactions can only be completed on a single processor (because the pi stacking calculation is relatively fast). These separate calculations can be run using --calctype and --nprocs. 
                     """), smarttabs=True)
                 )
     calc_parser._optionals.title = 'HELP'
@@ -130,9 +130,9 @@ def main():
                                 ) 
     calc_options = calc_parser.add_argument_group("OPTIONS")
     calc_options.add_argument("--calctype",  
-                            choices=["ALL", "HB", "SB", "PI", "HB+SB", "HB+PI", "SB+PI"],
+                            choices=["ALL", "HB", "SB", "PI", "WB", "HB+SB", "HB+PI", "SB+PI", "HB+WB", "SB+WB", "PI+WB", "HB+SB+WB", "HB+PI+WB", "SB+PI+WB", "HB+SB+PI"],
                             default="ALL",
-                            help="(OPTIONAL, Default: %(default)s) What type of interaction to compute. Options are ALL, HB, SB, PI, HB+SB, HB+PI, and SB+PI. ALL computes all, options with HB computes hydrogen bonds, options with SB computes salt bridges, and options with PI computes pi stacking interactions. "
+                            help="(OPTIONAL, Default: %(default)s) What type of interaction to compute. Options are ALL, HB, SB, PI, WB, HB+SB, HB+PI, SB+PI, HB+WB, SB+WB, PI+WB, HB+SB+WB, HB+PI+WB, SB+PI+WB, and HB+SB+PI. ALL computes all, options with HB computes hydrogen bonds, options with SB computes salt bridges, options with PI computes pi stacking interactions, and options with WB computes water bridges. "
                             ) # Commandline
     calc_options.add_argument("-n", "--n_protofilaments", 
                             type=io.ap_positive_int, # must be positive integer
@@ -192,6 +192,11 @@ def main():
                               type=str,
                               default="(resname TRP and name CG CD1 NE1 CE2 CD2)",
                               help="(OPTIONAL, Default: %(default)s) The MDAnalysis selection command for tryptophan rings (should be for the 5-membered ring). For help formatting this string, see the MDAnalysis Documentation: https://docs.mdanalysis.org/stable/documentation_pages/selections.html.")
+    calc_options.add_argument("--waterbridge_max_order", 
+                            type=io.ap_positive_int, # must be positive integer
+                            default=2, 
+                            help="(OPTIONAL, Default: %(default)s, Type: 2 < Int < 10) The maximum order water bridges to calculate (i.e. the maximum number of hydrogen bonds bridging two residues). Please be aware that increasing this value will lead to much slower calculations."
+                            ) # Commandline or Input File. If Input File, No Commandline.
     calc_options.add_argument("--nprocs", 
                             type=io.ap_cpu_int, # must be -1, -2, or positive integer
                             default=1,
@@ -260,6 +265,10 @@ def main():
                                                         (Type: Color, Default: gray) Line color for pi stacking interaction lines and edge color for pi stacking interaction markers.
                         pistacking_color_2 = PISTACKING_COLOR_2
                                                         (Type: Color, Default: white) Fill color for pi stacking interaction markers and dashed line color for pi stacking interactions that are both intra-and inter-layer.
+                        waterbridge_color_1 = WATERBRIDGE_COLOR_1
+                                                        (Type: Color, Default: steelblue) Line color for water bridge lines.
+                        waterbridge_color_2 = WATERBRIDGE_COLOR_2
+                                                        (Type: Color, Default: white) Dashed line color for waterbridges that are both intra-and inter-layer.
                         water_color = WATER_COLOR
                                                         (Type: Color, Default: powderblue) Color of water regions.
                         water_opacity = WATER_OPACITY
@@ -318,17 +327,33 @@ def main():
                             type=io.ap_valid_file,
                             nargs="+",
                             default=None, 
-                            help='(REQUIRED, Type: Filename) Checkpoint file(s) to finished calc job or previous map job.'
+                            help='(OPTIONAL, Default: None, Type: Filename) Checkpoint file(s) to finished calc job or previous map job.'
                             )
     map_inputs.add_argument("-i", "--input_file",
                             type=io.ap_valid_file, 
                             default=None, 
                             help='(OPTIONAL, Default: None, Type: Filename) Input file containing parameters for mapping job. All required commandline arguments and additional formatting parameters can alternatively be specified in this file. Arguments given at the commandline will override any of their counterparts given in this file. See I. INPUT FILE below for a list of parameters that can be set in this file.'
                             )
+    map_inputs.add_argument("-f", "--trajectory_file", 
+                            type=io.ap_valid_file,
+                            default=None,
+                            nargs='+',
+                            help='(OPTIONAL, Default: None, Type: Filename) Trajectory file(s) containing coordinate information (e.g. XTC, TRR, PDB). If multiple are provided, the systems must match exactly. If none is provided, the coordinates will be collected from the topology file. See https://userguide.mdanalysis.org/stable/formats/index.html for valid file formats. This parameter is included in checkpoint files.'
+                            )
+    map_inputs.add_argument("-t", "--topology_file", 
+                            type=io.ap_valid_file,
+                            default=None, # Actually required but could be in input or checkpoint file
+                            help='(REQUIRED, Type: Filename) Topology file containing atom charges, bonds, and Segment IDs (e.g TPR). If no trajectory file is provided, the topology file must also contain coordinate information. The order of the segments is very important. Please see II. IMPORTANT NOTE ABOUT TOPOLOGY FILES under calc help for more information. See https://userguide.mdanalysis.org/stable/formats/index.html for valid file formats. This parameter is included in and satisfied by checkpoint files.'
+                            )
     map_output = map_parser.add_argument_group("OUTPUT")
-    map_output.add_argument("-o", "--figure_file",
+    map_output.add_argument("-p", "--figure_file",
                             default=None, 
-                            help="(OPTIONAL, Default: [output_directory]/fibmap.png, Type: Filename) Path to and name of output image file. Can be any filetype that can be written by matplotlib. If using default, [output_directory] is the output directory specified for the previous calc run."
+                            help="(OPTIONAL, Default: [output_directory]/fibmap.png, Type: Filename) Path to and name of output image file. Can be any filetype that can be written by matplotlib. If using default, [output_directory] is the output directory specified here or in a checkpoint file."
+                            )
+    map_output.add_argument("-o", "--output_directory",
+                            type=io.ap_valid_path, # Make sure path exists
+                            default=None,
+                            help=f'(OPTIONAL, Default: {os.getcwd()}, Type: DirectoryPath) Directory to write files to. This directory must already exist. This parameter is included in checkpoint files. Default is working directory.'
                             )
     map_log_group = map_output.add_mutually_exclusive_group()
     map_log_group.add_argument("--log", 
@@ -353,10 +378,20 @@ def main():
                             help="(OPTIONAL) If used, the figure image will be opened after it is saved."
                             ) # Commandline
     map_options = map_parser.add_argument_group("OPTIONS")
+    map_options.add_argument("-n", "--n_protofilaments", 
+                            type=io.ap_positive_int, # must be positive integer
+                            default=None, # Actually required but could be in input or checkpoint file
+                            help="(REQUIRED, Type: Int > 0) The number of protofilaments in the fibril (i.e. how many segments are in each layer of the fibril). This parameter is included in and satisfied by checkpoint files."
+                            ) # Commandline or Input File. If Input File, No Commandline.
+    map_options.add_argument("--omit_layers", 
+                            type=io.ap_nonnegative_int, # must be positive integer or 0
+                            default=None, 
+                            help="(OPTIONAL, Default: 0, Type: Int >= 0) How many layers on each end of the fibril to omit from analysis. This is especially important for analysis of simulation trajectories of a finite fibril model as delamination at the ends of the fibril will bias the results. This parameter is included in checkpoint files."
+                            ) # Commandline or Input File. If Input File, No Commandline.
     map_options.add_argument("--p_cutoff",
                             type=io.ap_nonnegative_frac,
                             default=None,
-                            help=f"(OPTIONAL, Default: 0.5, Type: Float >= 0 and <= 1) Probability cutoff for hydrogen bonds, salt bridges, and pi stacking interactions. If the probability of a given interaction is less than this value then it will not be displayed on the map. (TIP: To hide all interactions, set this value to 1 and do not set --hbond_n_cutoff, --hbond_p_cutoff, --saltbridge_p_cutoff, or --pistacking_p_cutoff)."
+                            help=f"(OPTIONAL, Default: 0.5, Type: Float >= 0 and <= 1) Probability cutoff for hydrogen bonds, salt bridges, pi stacking interactions, and waterbridges. If the probability of a given interaction is less than this value then it will not be displayed on the map."
                             )
     map_hb_cutoffs = map_options.add_mutually_exclusive_group()
     map_hb_cutoffs.add_argument("--hbond_n_cutoff",
@@ -366,17 +401,22 @@ def main():
     map_hb_cutoffs.add_argument("--hbond_p_cutoff",
                             type=io.ap_nonnegative_frac,
                             default=None,
-                            help=f'(OPTIONAL, Default: None, Type: Float >= 0 and <= 1) Individually set the probability cutoff for hydrogen bonds. If not set, p_cutoff will be used. (TIP: To hide all hydrogen bonds, set this value to 1 and do not set --hbond_n_cutoff).'
+                            help=f'(OPTIONAL, Default: None, Type: Float >= 0 and <= 1) Individually set the probability cutoff for hydrogen bonds. If not set, p_cutoff will be used.'
                             )
     map_options.add_argument("--saltbridge_p_cutoff",
                             type=io.ap_nonnegative_frac,
                             default=None,
-                            help=f'(OPTIONAL, Default: None, Type: Float >= 0 and <= 1) Individually set the probability cutoff for salt bridges. If not set, p_cutoff will be used. (TIP: To hide all salt bridges, set this value to 1).'
+                            help=f'(OPTIONAL, Default: None, Type: Float >= 0 and <= 1) Individually set the probability cutoff for salt bridges. If not set, p_cutoff will be used.'
                             )
     map_options.add_argument("--pistacking_p_cutoff",
                             type=io.ap_nonnegative_frac,
                             default=None,
-                            help=f'(OPTIONAL, Default: None, Type: Float >= 0 and <= 1) Individually set the probability cutoff for pi stacking interactions. If not set, p_cutoff will be used. (TIP: To hide all pi stacking interactions, set this value to 1).'
+                            help=f'(OPTIONAL, Default: None, Type: Float >= 0 and <= 1) Individually set the probability cutoff for pi stacking interactions. If not set, p_cutoff will be used.'
+                            )
+    map_options.add_argument("--waterbridge_p_cutoff",
+                            type=io.ap_nonnegative_frac,
+                            default=None,
+                            help=f'(OPTIONAL, Default: None, Type: Float >= 0 and <= 1) Individually set the probability cutoff for waterbridges. If not set, p_cutoff will be used.'
                             )
     map_legend_group = map_output.add_mutually_exclusive_group()
     map_legend_group.add_argument("--legend", 
@@ -481,6 +521,8 @@ def main():
     # Add title to log file
     LOG.set_logfile(params.output_log)
     LOG.make_title()
+
+    LOG.output(f"Command Line: {' '.join(sys.argv)}")
 
     if loglines != "":
         LOG.header("FILE BACKUPS:")
@@ -592,7 +634,7 @@ def main():
                 LOG.bullet(f"Pi stacking interactions were already calculated and stored in {utils.relative_path(params.pi_unprocessed_file)}")
 
             if params.pi_processed_file is None:
-                print(f"Parsing pi-pi stacking interactions")
+                LOG.output(f"Parsing pi-pi stacking interactions")
                 pistacking.process()
                 LOG.clear_line() # Clear parsing pipi stacking interactions line
                 params.set_filename(pi_processed_file=f"{params.output_directory}/processed_pistacking_interactions.npy")
@@ -604,6 +646,43 @@ def main():
             else:
                 LOG.bullet(f"Pi stacking interactions were already processed and stored in: {utils.relative_path(params.pi_processed_file)}")
 
+        # ------------------------------- WATER BRIDGES -------------------------------
+        if params.calctype == "ALL" or "WB" in params.calctype:
+            LOG.header("WATER BRIDGES")
+            LOG.output("Calculating Water Bridge Hydrogen Bonds")
+            waterbridges = calc.WaterBridgeCalculator(params.topology_file, params.trajectory_file, params.nprocs, SYSTEMINFO, params.wb_unprocessed_hbond_file, params.hbond_angle_cutoff, params.hbond_distance_cutoff, params.waterbridge_max_order)
+            LOG.clear_line() # Clear Calculating Water Bridges Line
+            if not params.nosaveraw and params.wb_unprocessed_hbond_file is None:
+                params.set_filename(wb_unprocessed_hbond_file=f"{params.output_directory}/unprocessed_water_bridge_hbonds.npy")
+                waterbridges.save(unprocessed_hbond_file=params.wb_unprocessed_hbond_file)
+                LOG.bullet(f"Unprocessed water bridge h-bonds saved to {utils.relative_path(params.wb_unprocessed_hbond_file)}")
+            elif params.wb_unprocessed_hbond_file is not None:
+                LOG.bullet(f"Water bridge h-bonds were already calculated and stored in {utils.relative_path(params.wb_unprocessed_hbond_file)}")
+            
+            LOG.output("Finding Water Bridges")
+            waterbridges.find_bridges(params.wb_unprocessed_file)
+            LOG.clear_line()
+            if not params.nosaveraw and params.wb_unprocessed_file is None:
+                params.set_filename(wb_unprocessed_file=f"{params.output_directory}/unprocessed_water_bridges.npy")
+                waterbridges.save(unprocessed_file=params.wb_unprocessed_file)
+                LOG.bullet(f"Unprocessed water bridges saved to {utils.relative_path(params.wb_unprocessed_file)}")
+            elif params.wb_unprocessed_file is not None:
+                LOG.bullet(f"Water bridges were already calculated and stored in {utils.relative_path(params.wb_unprocessed_file)}")
+
+            if params.wb_processed_file is None:
+                LOG.output(f"Parsing water bridges")
+                waterbridges.process()
+                LOG.clear_line() # Clear parsing pipi stacking interactions line
+                params.set_filename(wb_processed_file=f"{params.output_directory}/processed_water_bridges.npy")
+                waterbridges.save(processed_file=params.wb_processed_file)
+                LOG.bullet(f"Processed water bridges saved to {utils.relative_path(params.wb_processed_file)}")
+
+                if params.verbose:
+                    waterbridges.show(LOG)
+            else:
+                LOG.bullet(f"Water bridges were already processed and stored in: {utils.relative_path(params.wb_processed_file)}")
+                if params.verbose:
+                    waterbridges.show(LOG, processed_results_file=params.wb_processed_file)
 
     # ------------------------------------------------------------------------------
     # MAIN : CREATE MAP
@@ -666,6 +745,16 @@ def main():
                 LOG.output(f"{'RESIDUE-A':>12}{'RESIDUE-B':>12}{'Total':>9}{'T*':>6}{'I*':>7}{'S*':>7}{'D*':>7}{'Total':>11}{'T*':>6}{'I*':>7}{'S*':>7}{'D*':>7}")
                 LOG.output(pi_string)
                 LOG.smart_print(f"    KEY (*)\n    The following probabilities are the probability of each kind of pi-stacking interaction when a given pi stacking interaction forms:\n{'T: T-Shaped':>15}{'I: Intermediate':>19}{'S: Sandwich':>15}{'D: Parallel Displaced':>25}")
+        
+        # Add Water Bridges
+        if params.wb_processed_file is not None:
+            if params.verbose:
+                LOG.header("WATER BRIDGES")
+            wb_string = fmap.add_water_bridges()
+            if params.verbose:
+                LOG.output(f"{'Intralayer':>33}{'Interlayer':>11}")
+                LOG.output(f"{'RESIDUE-A':>12}{'RESIDUE-B':>12}{'Total':>9}{'Total':>11}")
+                LOG.output(wb_string)
 
         # # Add legend
         if params.legend:

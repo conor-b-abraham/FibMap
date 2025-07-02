@@ -1,12 +1,16 @@
 import numpy as np
 import MDAnalysis as mda
 from MDAnalysis.analysis.hydrogenbonds.hbond_analysis import HydrogenBondAnalysis as HBA
+# from MDAnalysis.analysis.hydrogenbonds import WaterBridgeAnalysis as WBA
 from MDAnalysis.analysis import distances
 from tqdm import tqdm
 import multiprocessing
 from functools import partial
 from scipy.spatial.distance import pdist
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import dijkstra
 import warnings
+import pickle
 
 from src import utils
 
@@ -986,3 +990,342 @@ class PiStackingCalculator:
                     pinter_D = f"{np.round(pipi[13], 3):.3f}"
                     LOG.output(f"{a:>11}{b:>12}{pintra_tot:>10}{pintra_T:>7}{pintra_I:>7}{pintra_S:>7}{pintra_D:>7}{pinter_tot:>10}{pinter_T:>7}{pinter_I:>7}{pinter_S:>7}{pinter_D:>7}")
 
+# ------------------------------------------------------------------------------
+# WATER WIRES
+# ------------------------------------------------------------------------------
+def _calc_wb_hbonds(frame_chunk, u, whsel, wasel, psel, between, angle_cutoff=150, distance_cutoff=3.5):
+    '''
+    Calculate hydrogen bonds for a chunk of frames
+
+    Parameters
+    ----------
+    frame_chunk : tuple
+        first and last frame of chunk: (first_frame, last_frame)
+    u : MDAnalysis.universe
+        universe in which hydrogen bonds are to be computed
+    whsel : str
+        selection string to restrict which water hydrogen atoms are considered. This atomgroup will be updated each frame.
+    wasel : str
+        selection string to restrict which water atoms to be considered as acceptors. This atomgroup will be updated each frame.
+    psel : str 
+        selection string for protein
+    between : [str, str]
+        list of two non-updating selection strings for two groups the hydrogen bonds must exist between.
+    angle_cutoff : float (Default: 150)
+        the D-H-A angle cutoff
+    distance_cutoff : float (Default: 3.5)
+        the D-A distance cutoff
+    
+    Returns
+    -------
+    MDAnalysis.analysis.hydrogenbonds.hbond_analysis.results.hbonds
+        H-bond results for chunk of frames
+    '''
+    # Function for multiprocessing hbond calculation
+    hbonds = HBA(u, d_a_cutoff=distance_cutoff, d_h_a_angle_cutoff=angle_cutoff, between=between, update_selections=True)
+    p_hydrogens_sel = hbonds.guess_hydrogens(psel)
+    p_acceptors_sel = hbonds.guess_acceptors(psel)
+    hbonds.hydrogens_sel = f"({p_hydrogens_sel}) or ({whsel})"
+    hbonds.acceptors_sel = f"({p_acceptors_sel}) or ({wasel})"
+    hbonds.run(start=frame_chunk[0], stop=frame_chunk[1], verbose=True)
+    print('\033[1A', end='\x1b[2K') # Clear progress bar
+    return hbonds.results.hbonds
+
+def _calc_bridges(frame_chunk, raw_hbonds, all_inds, protein_inds, resinfo, max_order):
+    raw_results = []
+    maxpind = np.max(protein_inds)
+    # By weighting protein-water hydrogen bonds more than water-water hydrogen bonds we can prevent inclusion of hydrogen bond paths that pass through other protein residues
+    order_params = {3: {"max":3, "weight":1, "balance":0},
+                    4: {"max":6, "weight":2, "balance":2},
+                    5: {"max":7, "weight":2, "balance":2},
+                    6: {"max":10, "weight":3, "balance":4},
+                    7: {"max":11, "weight":3, "balance":4},
+                    8: {"max":14, "weight":4, "balance":6},
+                    9: {"max":15, "weight":4, "balance":6}}[max_order]
+    for frame in tqdm(range(frame_chunk[0], frame_chunk[1]), leave=False): # Do this for each frame
+        sel_frame = raw_hbonds[:,0].astype(int) == frame
+        donor_atom_inds, acceptor_atom_inds = raw_hbonds[sel_frame,1].astype(int), raw_hbonds[sel_frame,3].astype(int)
+        donor_inds = all_inds[donor_atom_inds].astype(int)
+        acceptor_inds = all_inds[acceptor_atom_inds].astype(int)
+
+        # Create Graph: For undirected graph, need to populate both [j,i] and [i,j] of csr matrix
+        allhb = np.column_stack((np.hstack((donor_inds, acceptor_inds)), np.hstack((acceptor_inds, donor_inds))))
+        u_allhb = np.unique(allhb, axis=0)
+        sel_prot = (u_allhb[:,0] <= maxpind) + (u_allhb[:,1] <= maxpind)
+
+        data = np.ones(u_allhb.shape[0])
+        data[sel_prot] = order_params["weight"]
+        g = csr_matrix((data, (u_allhb[:,0], u_allhb[:,1])), shape=(resinfo.shape[0], resinfo.shape[0]))
+        # Find shortest paths with dijkstra algorithm. Only looking for paths between protein atoms. Limit of 5 means not more than 5 hbonds. Might need to be increased but will be more expensive.
+        dist_matrix = dijkstra(g, directed=False, indices=protein_inds, limit=order_params["max"])
+        dist_matrix = dist_matrix[:,:dist_matrix.shape[0]]
+        dist_matrix[dist_matrix==np.inf] = -9999
+        dist_matrix = dist_matrix.astype(int)
+
+        # Reconstruct shortest paths for each pair of protein inds
+        dist_matrix = np.triu(dist_matrix)
+        i, j = np.where(dist_matrix>0)
+        orders = dist_matrix[dist_matrix>0]
+        raw_results.append(np.column_stack([np.full_like(i, frame), resinfo[i], resinfo[j], orders-order_params["balance"]]))
+
+    return np.vstack(raw_results)
+
+class WaterBridgeCalculator:
+    '''
+    Class for computing and sorting water bridges within a fibril
+
+    Attributes
+    ----------
+    raw_hbonds : numpy.ndarray
+
+    raw_results : 
+
+    processed_results : numpy.ndarray
+
+    
+    Methods
+    -------
+    process()
+        Process raw_results. Populates the processed_results attribute
+    save(maindirectory=None, rawdirectory=None)
+        If maindirectory is not None, save processed results to it. If rawdirectory is not None, save raw results to it.
+    show()
+        Print summary of processed results to terminal.
+
+    Usage
+    -----
+    1) Perform initial hbond calculation
+    waterbridges = WaterBridgeCalculator(topology_file, trajectory_file, nprocs, system_info)
+
+    # You can now save the raw results
+    waterbridges.save(unprocessed_hbond_file='PATH/TO/RESULTS/unprocessed_water_bridge_hbonds.npy')
+
+    2) Search for bridges
+    waterbridges.find_bridges()
+    waterbridges.save(unprocessed_file='PATH/TO/RESULTS/unprocessed_water_bridges.pkl')
+
+    2) Process the raw results
+    waterbridges.process()
+
+    # You can now save the processed results
+    waterbridges.save(processed_file='PATH/TO/RESULTS/processed_water_bridges.npy')
+
+    # You can now show the results
+    waterbridges.show()
+
+    '''
+    def __init__(self, topology_file, trajectory_file, nprocs, system_info, unprocessed_hbond_filename=None, angle_cutoff=150, distance_cutoff=3.5, max_order=2):
+        '''
+        Parameters
+        ----------
+        topology_file : str
+            Name of topology file
+        trajectory_file : str or [str]
+            Name(s) of trajectory file(s)
+        nprocs : int
+            Number of processors to use
+        system_info : utils.SystemInfo
+            System information
+        unprocessed_hbond_filename : Str or None
+            Name of file containing previously calculated unprocessed hydrogen bond results. This filename should come only from the Params class. If None, water-fibril and water-water hydrogen bonds will be calculated.
+        angle_cutoff : float (Default: 150)
+            the D-H-A angle cutoff
+        distance_cutoff : float (Default: 3.5)
+            the D-A distance cutoff
+        max_order : int (Default: 2)
+            compute water wires of this order and lower
+        '''
+        self.__top = topology_file
+        self.__traj = trajectory_file
+        self.__sysinfo = system_info
+        self.__max_order = max_order
+        self.__u = mda.Universe(self.__top, self.__traj)
+        self.__n_frames = self.__u.trajectory.n_frames
+        self.processed_results = None
+        self.raw_hbonds = None
+        self.raw_results = None
+        # Can't use more processors than there are frames
+        if nprocs > self.__n_frames:
+            self.__nprocs = self.__n_frames
+        else:
+            self.__nprocs = nprocs
+
+        if unprocessed_hbond_filename is not None:
+            self.raw_hbonds = np.load(unprocessed_hbond_filename)
+        else:
+            fibril_sel = f"segid {' '.join(self.__sysinfo.structure.flatten())}"
+
+            if self.__nprocs != 1: # Multiprocess
+                frame_chunks = [(chunk[0], chunk[-1]+1) for chunk in np.array_split(np.arange(self.__n_frames), self.__nprocs)]
+                # Water distance cutoff should really be = L*d/2, where L is the maximum number of bridging waters and d is the cutoff distnace for a hydrogen bond between heavy atoms. See: https://pubs.acs.org/doi/full/10.1021/acs.jcim.1c00306
+                run_chunks = partial(_calc_wb_hbonds, u=self.__u, whsel=f"resname TIP3 and name H* and byres around 12 {fibril_sel}", wasel=f"resname TIP3 and name O* and byres around 12 {fibril_sel}", psel=fibril_sel, between=[[fibril_sel, "resname TIP3"], ["resname TIP3", "resname TIP3"]], angle_cutoff=angle_cutoff, distance_cutoff=distance_cutoff)
+                with multiprocessing.Pool(self.__nprocs) as worker_pool:
+                    results = worker_pool.map(run_chunks, frame_chunks)
+                self.raw_hbonds = np.vstack(results)
+
+            else:
+                self.raw_hbonds = _calc_wb_hbonds((None, None), u=self.__u, whsel=f"resname TIP3 and name H* and byres around 12 {fibril_sel}", wasel=f"resname TIP3 and name O* and byres around 12 {fibril_sel}", psel=fibril_sel, between=[[fibril_sel, "resname TIP3"], ["resname TIP3", "resname TIP3"]], angle_cutoff=angle_cutoff, distance_cutoff=distance_cutoff)
+
+    def find_bridges(self, unprocessed_filename=None):
+        '''
+        Find water bridges among raw hbonds. Populates the raw_results attribute and the predecessors attribute
+
+        Parameters
+        ----------
+        unprocessed_filename : Str or None
+            The name of a file containing previously calculated raw results. If none, water bridge search will be conducted.
+        '''
+        if unprocessed_filename is not None:
+            self.raw_results = np.load(unprocessed_filename)
+        else:
+            all_inds, protein_inds, resinfo = [], [], []
+            protein_resnames = np.unique(self.__u.select_atoms("protein").residues.resnames)
+            water_resname = "TIP3"
+
+            c = 0
+            for i, residue in enumerate(tqdm(self.__u.residues, leave=False, desc="Setup")):
+                ac = 2
+                for atom in residue.atoms:
+                    if residue.resname in protein_resnames:
+                        if self.__sysinfo.atom_info[atom.index,3] == 0:
+                            all_inds.append(c)
+                        elif self.__sysinfo.atom_info[atom.index,3] == 1:
+                            all_inds.append(c+1)
+                        elif self.__sysinfo.atom_info[atom.index,3] == 2:
+                            all_inds.append(c+2)
+                            ac = 3
+                    elif residue.resname == water_resname:
+                        all_inds.append(c)
+                    else:
+                        all_inds.append(np.inf)
+
+                if residue.resname in protein_resnames:
+                    resinfo.append(np.hstack([self.__sysinfo.atom_info[atom.index,:3], [0]]))
+                    resinfo.append(np.hstack([self.__sysinfo.atom_info[atom.index,:3], [1]]))
+                    protein_inds.append(c)
+                    protein_inds.append(c+1)
+                    if ac == 3:
+                        resinfo.append(np.hstack([self.__sysinfo.atom_info[atom.index,:3], [2]]))
+                        protein_inds.append(c+2)
+                    c += ac
+                elif residue.resname == water_resname:
+                    resinfo.append(np.array([-1, -1, -1, atom.index]))
+                    c += 1
+                
+            all_inds, protein_inds, resinfo = np.array(all_inds), np.array(protein_inds), np.array(resinfo)
+
+            if self.__nprocs != 1: # Multiprocess
+                frame_chunks = [(chunk[0], chunk[-1]+1) for chunk in np.array_split(np.arange(self.__n_frames), self.__nprocs)]
+                run_chunks = partial(_calc_bridges, raw_hbonds=self.raw_hbonds, all_inds=all_inds, protein_inds=protein_inds, resinfo=resinfo, max_order=self.__max_order)
+                with multiprocessing.Pool(self.__nprocs) as worker_pool:
+                    results = worker_pool.map(run_chunks, frame_chunks)
+                
+                self.raw_results = np.vstack(results)
+            else:
+                self.raw_results = _calc_bridges((0, self.__n_frames), raw_hbonds=self.raw_hbonds, all_inds=all_inds, protein_inds=protein_inds, resinfo=resinfo, max_order=self.__max_order)
+
+    def process(self):
+        '''
+        Process raw water wire results to gather information about how to represent the water wire interactions on the map. Calling this method populates the processed_results attribute.
+        '''
+        found_resorders = []
+        for i, ww in enumerate(tqdm(self.raw_results, leave=False, desc="Setup")):
+            ro1 = f"{ww[3]}-{ww[7]}"
+            ro2 = f"{ww[7]}-{ww[3]}"
+            if ro2 in found_resorders:
+                self.raw_results[i] = np.hstack([[ww[0]],ww[5:9],ww[1:5],[ww[9]]])
+            elif ro1 not in found_resorders:
+                found_resorders.append(ro1)
+        
+        total_probabilities = _process_interactions(self.raw_results[:,:-1], n_layers=self.__sysinfo.structure.shape[0], n_frames=self.__n_frames, combine_intraL_interL=False)
+        
+        # Calculate Order Probabilities
+        # These probabilities tell you the probability of each kind of pi stacking interaction when it forms
+        search_array = np.column_stack((
+            self.raw_results[:,(2,3,4,6,7,8)],
+            self.raw_results[:,5]-self.raw_results[:,1],
+            self.raw_results[:,-1] # Order
+        ))
+        search_array[search_array[:,-2]!=0,-2] = 1 # Interlayer (1) or Intralayer (0)
+        # search_array:: 0:D_p, 1: D_r, 2: D_s, 3: A_p, 4: A_r, 5: A_s, 6: IntraLvInterL, 7: Type
+
+        order_p_array = np.zeros((total_probabilities.shape[0],self.__max_order))
+        for i, pii in enumerate(total_probabilities):
+            selp = np.all(search_array[:,:-1]==pii[:-1], axis=1) # Search for matching residue pairs and distinguish between intraL and interL
+            found_orders = search_array[selp,-1].astype(int) # Get the orders
+            unique_orders = np.unique(found_orders)
+            n_total = found_orders.shape[0]
+            for ti in unique_orders: # Calculate prob. of each order if it is found at all (otherwise it's zero): 1 through self.__max_order are possible
+                order_p_array[i, ti-1] = np.sum(found_orders==ti)/n_total
+            search_array = search_array[np.invert(selp)] # Don't search the same values again
+        # order_p_array :: 0:1, 1:2, ...
+
+        # Combine intralayer and interlayer
+        unique_pairs = np.unique(total_probabilities[:,:-2], axis=0)
+        all_probabilities = np.zeros((unique_pairs.shape[0],self.__max_order*2+2))
+        for i, unique_row in enumerate(unique_pairs):
+            sel = np.all(total_probabilities[:,:-2]==unique_row, axis=1)
+            for layerdiff, pvals in zip(total_probabilities[sel,6], np.column_stack((total_probabilities[sel,7], order_p_array[sel,:]))):
+                if layerdiff == 0: # Intralayer
+                    all_probabilities[i, :self.__max_order+1] = pvals
+                else: # Interlayer
+                    all_probabilities[i, self.__max_order+1:] = pvals
+        
+        self.processed_results = np.column_stack((
+            unique_pairs,
+            all_probabilities
+        ))
+        # 0: Protofilament A, 1: Residue A, 2: Protofilament B, 3: Residue B, 4: Intralayer P(Total), 5: Intralayer P(1st order), 6: Intralayer P(2nd Order), ... Interlayer P(Total), Interlayer P(1st Order), Interlayer P(2nd Order), ...
+
+    def save(self, processed_file=None, unprocessed_file=None, unprocessed_hbond_file=None):
+        '''
+        Save water wires
+
+        Parameters
+        ----------
+        processed_file : str or None
+            name of file to save processed results. If none, processed results are not saved. NPZ file
+        unprocessed_file : str or None
+            name of file to save raw results. If none, raw results are not saved. PKL file
+        unprocessed_hbond_file : str or None
+            name of file to save raw hbond results. If none, raw results are not saved. NPY file
+        '''
+        # Save Processed Results
+        if processed_file is not None:
+            np.save(processed_file, self.processed_results)
+        
+        # Save Raw Results
+        if unprocessed_file is not None:
+            np.save(unprocessed_file, self.raw_results)
+
+        # Save Processed Results
+        if unprocessed_hbond_file is not None:
+            np.save(unprocessed_hbond_file, self.raw_hbonds)
+
+    def show(self, LOG, processed_results_file=None):
+        '''
+        Print water wires
+
+        Parameters
+        ----------
+        LOG : io.Logger
+            Custom logger for output
+        '''
+        if processed_results_file is not None:
+            self.processed_results = np.load(processed_results_file)
+        tinds = (4, self.__max_order+5)
+        if np.sum(self.processed_results[:,tinds]>=0.5) == 0:
+            LOG.output(f"NONE")
+        else:
+            LOG.output(f"{' '*(27+(self.__max_order*4))}INTRALAYER{' '*(4+(self.__max_order*8))}INTERLAYER")
+            orders = [f"P({o})" for o in range(1, self.__max_order+1)]
+            orderhead = ''.join([f"{o:>8}" for o in orders])
+            LOG.output(f"{'RESIDUE 1':>12}{'RESIDUE 2':>12}{'P(Total)':>10}{orderhead}{'P(Total)':>10}{orderhead}")
+            types = ["BB", "SC", "T"]
+            for ww in self.processed_results:
+                if ww[tinds[0]] >= 0.5 or ww[tinds[1]] >= 0.5:
+                    s1 = f'{int(ww[0])}-{self.__sysinfo.get_residue(self.__sysinfo.segment_resids[int(ww[1])-1])}-{types[int(ww[2])]}'
+                    s2 = f'{int(ww[3])}-{self.__sysinfo.get_residue(self.__sysinfo.segment_resids[int(ww[4])-1])}-{types[int(ww[5])]}'
+                    pIntra = ''.join([f"{p:>8}" for p in np.round(ww[6:6+self.__max_order+1],3)])
+                    pInter = ''.join([f"{p:>8}" for p in np.round(ww[6+self.__max_order+1:],3)])
+                    LOG.output(f"{s1:>12}{s2:>12}  {pIntra}  {pInter}")
