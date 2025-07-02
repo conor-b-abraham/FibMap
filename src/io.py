@@ -1233,7 +1233,7 @@ class Params:
                 "pistacking_tyr_sel":["(resname TYR and name CG CD2 CE2 CZ CE1 CD1)", _selstring],
                 "pistacking_his_sel":["(resname HSD HSE HSP and name CG CD2 NE2 CE1 ND1)", _selstring],
                 "pistacking_trp_sel":["(resname TRP and name CG CD1 NE1 CE2 CD2)", _selstring],
-                "waterbridge_max_order":[2, _valid_max_order]
+                "waterbridge_max_order":[3, _valid_max_order]
                 }}
         elif self.command == "map":
             self.__param_info = {**self.__param_info, **{

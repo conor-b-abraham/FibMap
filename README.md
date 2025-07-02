@@ -265,7 +265,7 @@ The `calc` subcommand is used to compute the intermolecular forces within the fi
 | `--pistacking_tyr_sel MDAnalysis_Selection_String` | (resname TYR and name CG CD2 CE2 CZ CE1 CD1) | The MDAnalysis selection command for tyrosine rings. For help formatting this string, see the [MDAnalysis Documentation](https://docs.mdanalysis.org/stable/documentation_pages/selections.html). |
 | `--pistacking_his_sel MDAnalysis_Selection_String` | (resname HSD HSE HSP and name CG CD2 NE2 CE1 ND1) | The MDAnalysis selection command for histidine rings. For help formatting this string, see the [MDAnalysis Documentation](https://docs.mdanalysis.org/stable/documentation_pages/selections.html). |
 | `--pistacking_trp_sel MDAnalysis_Selection_String` | (resname TRP and name CG CD1 NE1 CE2 CD2) | The MDAnalysis selection command for tryptophan rings (should be for the 5-membered ring). For help formatting this string, see the [MDAnalysis Documentation](https://docs.mdanalysis.org/stable/documentation_pages/selections.html). |
-| `--waterbridge_max_order int` (2 < Int < 10) | 2 | The maximum order water bridges to calculate (i.e. the maximum number of hydrogen bonds bridging two residues). Please be aware that increasing this value will lead to much slower calculations. |
+| `--waterbridge_max_order int` (3 < Int < 10) | 3 | The maximum order water bridges to calculate (i.e. the maximum number of hydrogen bonds bridging two residues). Please be aware that increasing this value will lead to much slower calculations. |
 | `--nprocs int` (int $\geq$-2) | 1 | How many processors to use for hydrogen bond and pi stacking calculations. Use -1 to use all available processors, -2 to use half of the available processors, or some positive integer. |
 </details>
 
@@ -350,6 +350,7 @@ pistacking_phe_sel              = # The selection command for phenylalanine ring
 pistacking_tyr_sel              = # The selection command for tyrosine rings
 pistacking_his_sel              = # The selection command for histidine rings
 pistacking_trp_sel              = # The selection command for tryptophan rings
+waterbridge_max_order           = # The maximum order of water bridge to include 
 nprocs                          = # The number of processors to use
 ```
 </details>
@@ -521,6 +522,8 @@ saltbridge_color_2     = # Outline color for salt bridges
 saltbridge_color_3     = # Color of dashed line for salt bridges that are intra- and inter-layer
 pistacking_color_1     = # Line color for pi stacking interactions
 pistacking_color_2     = # Fill for pi stacking interactions
+waterbridge_color_1    = # Line color for water bridges
+waterbridge_color_2    = # line color for water bridges that are both intra- and inter-layer
 water_color            = # Color of water channel regions
 water_opacity          = # Opacity of water channel regions
 zipper_color           = # Color of hydrophobic zipper regions

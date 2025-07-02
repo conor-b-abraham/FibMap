@@ -194,7 +194,7 @@ def main():
                               help="(OPTIONAL, Default: %(default)s) The MDAnalysis selection command for tryptophan rings (should be for the 5-membered ring). For help formatting this string, see the MDAnalysis Documentation: https://docs.mdanalysis.org/stable/documentation_pages/selections.html.")
     calc_options.add_argument("--waterbridge_max_order", 
                             type=io.ap_positive_int, # must be positive integer
-                            default=2, 
+                            default=3, 
                             help="(OPTIONAL, Default: %(default)s, Type: 2 < Int < 10) The maximum order water bridges to calculate (i.e. the maximum number of hydrogen bonds bridging two residues). Please be aware that increasing this value will lead to much slower calculations."
                             ) # Commandline or Input File. If Input File, No Commandline.
     calc_options.add_argument("--nprocs", 
