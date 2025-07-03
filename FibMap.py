@@ -698,7 +698,9 @@ def main():
 
         if params.map_positions_file is None:
             params.set_filename(map_positions_file=f"{params.output_directory}/map_positions.npz")
-            np.savez(params.map_positions_file, CA=CA_positions, SC=SC_positions, CT=Cterm_positions, NT=Nterm_positions)
+            CA_pos = {f"CA{i}":CA_positions[i] for i in range(SYSTEMINFO.structure.shape[1])}
+            SC_pos = {f"SC{i}":SC_positions[i] for i in range(SYSTEMINFO.structure.shape[1])}
+            np.savez(params.map_positions_file, **CA_pos, **SC_pos, CT=Cterm_positions, NT=Nterm_positions)
             LOG.bullet(f"Residue positions saved to {utils.relative_path(params.map_positions_file)}")
         else:
             LOG.bullet(f"Residue positions retrieved from: {utils.relative_path(params.map_positions_file)}")
@@ -759,6 +761,8 @@ def main():
         # # Add legend
         if params.legend:
             fmap.make_legend()
+        else:
+            fmap.make_distance_indicator()
 
         fmap.save()
         LOG.header("COMPLETE")

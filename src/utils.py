@@ -76,14 +76,21 @@ class SystemInfo:
         
         
         # CONSTRUCT 'MATCHED_RESIDS' ATTRIBUTE
-        # future: This needs to consider that the residues in each protofilament could be different
-        self.segment_resids = ag.segments[0].residues.resids
-        nres_per_seg = ag.segments[0].residues.n_residues
+        # This needs to consider that the residues in each protofilament could be different
+        if n_protofilaments == 1:
+            self.segment_resids = ag.segments[0].residues.resids
+            nres_per_seg = ag.segments[0].residues.n_residues
+        else:
+            nres_per_seg = 0
+            self.segment_resids = []
+            for si in self.structure[0]:
+                self.segment_resids.append(ag.select_atoms(f"segid {si}").residues.resids)
+                nres_per_seg += ag.select_atoms(f"segid {si}").residues.n_residues
+            self.segment_resids = np.hstack(self.segment_resids)
         self.matched_resids = np.zeros((ag.residues.n_residues, 2), dtype=int).astype(str)
         for i, res in enumerate(ag.residues):
             self.matched_resids[i, 0] = str(res.resid)
             self.matched_resids[i, 1] = f'{res.resname}{self.segment_resids[i%nres_per_seg]}'
-
         # CONSTRUCT 'BACKBONE_ATOM_NAMES' ATTRIBUTE
         # This will only include heavy atoms
         self.backbone_atom_names = np.unique(ag.select_atoms('backbone').names)
@@ -137,9 +144,15 @@ class SystemInfo:
             return terminal_names
 
         terminal_atom_names = []
-        for si in range(n_protofilaments):
-            terminal_atom_names += _find_term_atoms(ag.segments[si].residues[0].atoms.select_atoms("backbone")) # N-Terminus
-            terminal_atom_names += _find_term_atoms(ag.segments[si].residues[-1].atoms.select_atoms("backbone")) # C-Terminus
+        # for si in range(n_protofilaments):
+        #     terminal_atom_names += _find_term_atoms(ag.segments[si].residues[0].atoms.select_atoms("backbone")) # N-Terminus
+        #     terminal_atom_names += _find_term_atoms(ag.segments[si].residues[-1].atoms.select_atoms("backbone")) # C-Terminus
+        #     print(si, ag.segments[si].segid)
+        # print(ag.segments.segids)
+        for si in self.structure[0]:
+            terminal_atom_names += _find_term_atoms(ag.select_atoms(f"segid {si}").residues[0].atoms.select_atoms("backbone")) # N-Terminus
+            terminal_atom_names += _find_term_atoms(ag.select_atoms(f"segid {si}").residues[-1].atoms.select_atoms("backbone")) # C-Terminus
+            # print(si, ag.select_atoms(f"segid {si}").residues.n_residues)
         self.terminal_atom_names = np.unique(terminal_atom_names)
 
         # CONSTRUCT 'ATOM INFO' ATTRIBUTE
@@ -150,10 +163,13 @@ class SystemInfo:
                 self.atom_info[ag.atoms.segids==segid,1] = pfi+1 # Column 1 is the protofilament index
 
         # Column 2 is residue index within its segment(one-based)
+        layer_resids = []
+        for segid in self.structure[0]:
+            layer_resids = layer_resids + list(range(ag.select_atoms(f"segid {segid}").residues.n_residues))
         counter = 0
         for i, residue in enumerate(ag.residues):
             for _ in residue.atoms:
-                self.atom_info[counter,2] = (i%nres_per_seg) + 1 
+                self.atom_info[counter,2] = layer_resids[(i%nres_per_seg)] + 1 
                 counter += 1
 
         # Column 3 is atom type (0 for backbone, 1 for sidechain, 2 for terminus)

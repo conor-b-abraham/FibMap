@@ -111,9 +111,11 @@ def _process_interactions(interactions, n_layers, n_frames, combine_intraL_inter
         frames_multi.append(frames_multi_ts)
     if len(frames_multi) > 1:
         frames_multi = np.hstack(frames_multi)
+    elif len(frames_multi) == 1:
+        frames_multi = np.array(frames_multi[0]) # Indexing at 0 should be fine, but it could have broken things
     else:
         frames_multi = np.array(frames_multi)
-        print(frames_multi.shape)
+        #print(frames_multi.shape)
     
     # Third, combine single and multi results
     details_unique=np.vstack((details_multi, details_single))
@@ -384,13 +386,13 @@ class HydrogenBondCalculator:
         '''
         # if self.processed_results.size == 0:
         types = ["BB", "SC", "T"]
-        if np.sum(self.processed_results[:,(7,9)]>=0.5) == 0:
+        if np.sum(self.processed_results[:,(7,9)]>=0.1) == 0:
             LOG.output(f"NONE")
         else:
             LOG.output(f"{'INTRALAYER':>44}{'INTERLAYER':>26}")
             LOG.output(f"{'DONOR':>10}{'ACCEPTOR':>13}{'<N H-BONDS>':>16}{'P(H-BOND)':>11}{'<N H-BONDS>':>15}{'P(H-BOND)':>11}")
             for hb in self.processed_results:
-                if hb[7] > 0.5 or hb[9] > 0.5:
+                if hb[7] > 0.1 or hb[9] > 0.1:
                     pintra = f"{np.round(hb[7], 3):.3f}"
                     pinter = f"{np.round(hb[9], 3):.3f}"
                     nintra = f"{np.round(hb[6], 3):.3f}"
@@ -622,7 +624,7 @@ class SaltBridgeCalculator:
         Print salt bridges
         '''
         types = ["BB", "SC", "T"]
-        if np.sum(self.processed_results[:,(6,7)]>=0.5) == 0:
+        if np.sum(self.processed_results[:,(6,7)]>=0.1) == 0:
         # if self.processed_results.size == 0:
             LOG.output("NONE")
         else:
@@ -969,13 +971,13 @@ class PiStackingCalculator:
         '''
         Log pi stacking interactons
         '''
-        if np.sum(self.processed_results[:,(4,9)]>=0) == 0:
+        if np.sum(self.processed_results[:,(4,9)]>=0.1) == 0:
             LOG.output("NONE")
         else:
             LOG.output(f"{'Intralayer Probabilities':>56}{'Interlayer Probabilities':>39}")
             LOG.output(f"{'RESIDUE-A':>12}{'RESIDUE-B':>12}{'Total':>9}{'T':>5}{'I':>7}{'S':>7}{'D':>7}{'Total':>12}{'T':>5}{'I':>7}{'S':>7}{'D':>7}")
             for pipi in self.processed_results:
-                if pipi[4] >= 0 or pipi[9] >= 0:
+                if pipi[4] >= 0 or pipi[9] >= 0.1:
                     a = f'{int(pipi[0])}-{self.__sysinfo.get_residue(self.__sysinfo.segment_resids[int(pipi[1])-1])}'
                     b = f'{int(pipi[2])}-{self.__sysinfo.get_residue(self.__sysinfo.segment_resids[int(pipi[3])-1])}'
                     pintra_tot = f"{np.round(pipi[4], 3):.3f}"
@@ -1314,7 +1316,7 @@ class WaterBridgeCalculator:
         if processed_results_file is not None:
             self.processed_results = np.load(processed_results_file)
         tinds = (4, self.__max_order+5)
-        if np.sum(self.processed_results[:,tinds]>=0.5) == 0:
+        if np.sum(self.processed_results[:,tinds]>=0.1) == 0:
             LOG.output(f"NONE")
         else:
             LOG.output(f"{' '*(27+(self.__max_order*4))}INTRALAYER{' '*(4+(self.__max_order*8))}INTERLAYER")
@@ -1323,7 +1325,7 @@ class WaterBridgeCalculator:
             LOG.output(f"{'RESIDUE 1':>12}{'RESIDUE 2':>12}{'P(Total)':>10}{orderhead}{'P(Total)':>10}{orderhead}")
             types = ["BB", "SC", "T"]
             for ww in self.processed_results:
-                if ww[tinds[0]] >= 0.5 or ww[tinds[1]] >= 0.5:
+                if ww[tinds[0]] >= 0.5 or ww[tinds[1]] >= 0.1:
                     s1 = f'{int(ww[0])}-{self.__sysinfo.get_residue(self.__sysinfo.segment_resids[int(ww[1])-1])}-{types[int(ww[2])]}'
                     s2 = f'{int(ww[3])}-{self.__sysinfo.get_residue(self.__sysinfo.segment_resids[int(ww[4])-1])}-{types[int(ww[5])]}'
                     pIntra = ''.join([f"{p:>8}" for p in np.round(ww[6:6+self.__max_order+1],3)])

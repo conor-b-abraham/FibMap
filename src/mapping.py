@@ -330,8 +330,10 @@ def _positions_mp(frame_chunk, segids, TOP, TRAJ, reference_positions, term_atom
     Function to parallelize mapping of fibril onto 2D plane
     '''
     u = mda.Universe(TOP, TRAJ)
-    CA_positions = np.zeros((segids.shape[1], u.select_atoms(f"segid {segids.flatten()[0]}").residues.n_residues, 2))
-    SC_positions = np.zeros_like(CA_positions)
+    # CA_positions = np.zeros((segids.shape[1], u.select_atoms(f"segid {segids.flatten()[0]}").residues.n_residues, 2))
+    CA_positions = [np.zeros((u.select_atoms(f"segid {segids.flatten()[i]}").residues.n_residues, 2)) for i in range(segids.shape[1])]
+    SC_positions = [np.zeros_like(CA_positions[i]) for i in range(segids.shape[1])]
+    # SC_positions = np.zeros_like(CA_positions)
     Cterm_positions = np.zeros((segids.shape[1], 2))
     Nterm_positions = np.zeros_like(Cterm_positions)
     RMSDs = np.zeros((segids.shape[0], u.trajectory.n_frames))
@@ -361,8 +363,9 @@ def _positions_mp(frame_chunk, segids, TOP, TRAJ, reference_positions, term_atom
                 SCp.append(np.array(res_scpos))
                 Ctermp.append(segment.residues[-1].atoms.select_atoms(termsel).center_of_mass()[:2])
                 Ntermp.append(segment.residues[0].atoms.select_atoms(termsel).center_of_mass()[:2])
-            CA_positions += np.array(CAp)
-            SC_positions += np.array(SCp)
+            for i in range(segids.shape[1]):
+                CA_positions[i] += np.array(CAp[i])
+                SC_positions[i] += np.array(SCp[i])
             Cterm_positions += np.array(Ctermp)
             Nterm_positions += np.array(Ntermp)
     return {"CA":CA_positions, "SC":SC_positions, "CT":Cterm_positions, "NT":Nterm_positions, "RMSDs":RMSDs}
@@ -499,8 +502,10 @@ class FibrilMap:
         reference_positions = refCA.positions
         
         # DETERMINE POSITIONS
-        CA_positions = np.zeros((self.__sysinfo.structure.shape[1], self.__u.select_atoms(f"segid {self.__sysinfo.structure.flatten()[0]}").residues.n_residues, 2))
-        SC_positions = np.zeros_like(CA_positions)
+        # CA_positions = np.zeros((self.__sysinfo.structure.shape[1], self.__u.select_atoms(f"segid {self.__sysinfo.structure.flatten()[0]}").residues.n_residues, 2))
+        # SC_positions = np.zeros_like(CA_positions)
+        CA_positions = [np.zeros((self.__u.select_atoms(f"segid {self.__sysinfo.structure.flatten()[i]}").residues.n_residues, 2)) for i in range(self.__sysinfo.structure.shape[1])]
+        SC_positions = [np.zeros_like(CA_positions[i]) for i in range(self.__sysinfo.structure.shape[1])]
         Cterm_positions = np.zeros((self.__sysinfo.structure.shape[1], 2))
         Nterm_positions = np.zeros_like(Cterm_positions)
         RMSDs = np.zeros((self.__sysinfo.structure.shape[0], self.__u.trajectory.n_frames))
@@ -516,15 +521,17 @@ class FibrilMap:
             p.close()
             p.join()
             for r in results:
-                CA_positions += r["CA"]
-                SC_positions += r["SC"]
+                for i in range(self.__sysinfo.structure.shape[1]):
+                    CA_positions[i] += r["CA"][i]
+                    SC_positions[i] += r["SC"][i]
                 Cterm_positions += r["CT"]
                 Nterm_positions += r["NT"]
                 RMSDs += r["RMSDs"]
         else:
             results = _positions_mp((None, None), self.__sysinfo.structure, self.__top, self.__traj, reference_positions, self.__sysinfo.terminal_atom_names)
-            CA_positions = results['CA']
-            SC_positions = results['SC']
+            for i in range(self.__sysinfo.structure.shape[1]):
+                CA_positions[i] += results["CA"][i]
+                SC_positions[i] += results["SC"][i]
             Cterm_positions = results['CT']
             Nterm_positions = results['NT']
             RMSDs = results['RMSDs']
@@ -532,8 +539,9 @@ class FibrilMap:
         print(f"  Mean RMSD of fitted layers: {np.round(np.mean(RMSDs),3)}\u212B")
 
         # Get averages by dividing by the number of frames times the number of layers
-        CA_positions /= (self.__u.trajectory.n_frames*self.__sysinfo.structure.shape[0])
-        SC_positions  /= (self.__u.trajectory.n_frames*self.__sysinfo.structure.shape[0])
+        for i in range(self.__sysinfo.structure.shape[1]):
+            CA_positions[i] = CA_positions[i]/(self.__u.trajectory.n_frames*self.__sysinfo.structure.shape[0])
+            SC_positions[i] = SC_positions[i]/(self.__u.trajectory.n_frames*self.__sysinfo.structure.shape[0])
         Cterm_positions /= (self.__u.trajectory.n_frames*self.__sysinfo.structure.shape[0])
         Nterm_positions /= (self.__u.trajectory.n_frames*self.__sysinfo.structure.shape[0])
 
@@ -615,16 +623,17 @@ class FibrilMap:
         ct_positions : numpy.ndarray(dtype=float, shape=(N_Protofilaments, 2))
             Array containing the positions of the C-termini in figure points
         '''
-        # First, we need to find the bead radius: Bead radius will be 1/3 the minimum alpha-Carbon alpha-Carbon "bonded" distance
-        min_bonded_dist = np.ceil(np.min([np.sqrt((np.diff(p, axis=0)**2).sum(axis=1)) for p in ca_positions]))
-        temp_underradius = 5*min_bonded_dist/12
+        # First, we need to find the bead radius: Bead radius will be 1/3 the minimum alpha-Carbon alpha-Carbon "bonded" distance 
+        min_bonded_dist = np.ceil(np.mean(np.hstack([np.sqrt((np.diff(p, axis=0)**2).sum(axis=1)) for p in ca_positions])))
+        # temp_underradius = 5*min_bonded_dist/12
+        temp_underradius = min_bonded_dist/3
 
 
         # Second, we find the x and y span covered by the residues
-        maxx = np.ceil(np.max((ca_positions[:,:,0].max(), sc_positions[:,:,0].max(), nt_positions[:,0].max(), ct_positions[:,0].max())))+(2*temp_underradius)
-        minx = np.floor(np.min((ca_positions[:,:,0].min(), sc_positions[:,:,0].min(), nt_positions[:,0].min(), ct_positions[:,0].min())))-(2*temp_underradius)
-        maxy = np.ceil(np.max((ca_positions[:,:,1].max(), sc_positions[:,:,1].max(), nt_positions[:,1].max(), ct_positions[:,1].max())))+(2*temp_underradius)
-        miny = np.floor(np.min((ca_positions[:,:,1].min(), sc_positions[:,:,1].min(), nt_positions[:,1].min(), ct_positions[:,1].min())))-(2*temp_underradius)
+        maxx = np.ceil(np.max((np.vstack(ca_positions)[:,0].max(), np.vstack(sc_positions)[:,0].max(), nt_positions[:,0].max(), ct_positions[:,0].max())))+(2*temp_underradius)
+        minx = np.floor(np.min((np.vstack(ca_positions)[:,0].min(), np.vstack(sc_positions)[:,0].min(), nt_positions[:,0].min(), ct_positions[:,0].min())))-(2*temp_underradius)
+        maxy = np.ceil(np.max((np.vstack(ca_positions)[:,1].max(), np.vstack(sc_positions)[:,1].max(), nt_positions[:,1].max(), ct_positions[:,1].max())))+(2*temp_underradius)
+        miny = np.floor(np.min((np.vstack(ca_positions)[:,1].min(), np.vstack(sc_positions)[:,1].min(), nt_positions[:,1].min(), ct_positions[:,1].min())))-(2*temp_underradius)
         xspan = maxx - minx
         yspan = maxy - miny
         
@@ -635,8 +644,9 @@ class FibrilMap:
             conversion_factor = np.min([((self.__figsize[0])*72)/xspan, (self.__figsize[1]*72)/yspan])
 
         # Convert the positions' units
-        ca_positions = ca_positions * conversion_factor
-        sc_positions = sc_positions * conversion_factor
+        for i in range(self.__sysinfo.structure.shape[1]):
+            ca_positions[i] = ca_positions[i] * conversion_factor
+            sc_positions[i] = sc_positions[i] * conversion_factor
         nt_positions = nt_positions * conversion_factor
         ct_positions = ct_positions * conversion_factor
 
@@ -649,6 +659,7 @@ class FibrilMap:
             self.__legend_dims = [72*1.5, yspan*conversion_factor]
             self.__legend_1nm = 10*conversion_factor
         else:
+            self.__legend_1nm = 10*conversion_factor
             self.ax.set_xlim(minx*conversion_factor, maxx*conversion_factor)
             self.ax.set_ylim(miny*conversion_factor, maxy*conversion_factor)
 
@@ -685,7 +696,7 @@ class FibrilMap:
             # determine vector for termini markers
             vec = termpos-lastbb
             vec = vec/np.linalg.norm(vec)
-            vec = vec*underradius*2
+            vec = vec*underradius*5/3
             xcoords = np.array([lastbb[0], lastbb[0]+vec[0]])
             ycoords = np.array([lastbb[1], lastbb[1]+vec[1]])
             return xcoords, ycoords
@@ -726,8 +737,8 @@ class FibrilMap:
             CA_pos, SC_pos, Cterm_pos, Nterm_pos = self._chain_positions()
         else:
             positions = np.load(self.__params.map_positions_file)
-            CA_pos = np.copy(positions["CA"])
-            SC_pos = np.copy(positions["SC"])
+            CA_pos = [np.copy(positions[f"CA{i}"]) for i in range(self.__sysinfo.structure.shape[1])]
+            SC_pos = [np.copy(positions[f"SC{i}"]) for i in range(self.__sysinfo.structure.shape[1])]
             Cterm_pos = np.copy(positions["CT"])
             Nterm_pos = np.copy(positions["NT"])
             positions.close()
@@ -736,12 +747,12 @@ class FibrilMap:
         CA_positions, SC_positions, Cterm_positions, Nterm_positions = self._init_figure(CA_pos, SC_pos, Cterm_pos, Nterm_pos)
         self.chains = []
         # first_resid = self.__u.residues.resids[0]
-        for ci in range(self.__sysinfo.structure.shape[1]):
+        for ci, segid in enumerate(self.__sysinfo.structure[0]):
             newchain = Chain(residues=[], 
                              nt_position=Nterm_positions[ci], 
                              ct_position=Cterm_positions[ci], 
                              color=self.__params.backbone_color[ci%len(self.__params.backbone_color)])
-            for ri, residue in enumerate(self.__u.segments[ci].residues):
+            for ri, residue in enumerate(self.__u.select_atoms(f"segid {segid}").residues):
                 matched_residue_name = self.__sysinfo.get_residue(residue.resid)
                 residue_color, residue_label_color = self._get_residue_colors(matched_residue_name[:3], _residue_charge(residue, residue.atoms.select_atoms(f"backbone or not ({' or '.join(self.__sysinfo.terminal_atom_names)})")))
                 newchain.add_residue(Residue(residue,
@@ -958,7 +969,7 @@ class FibrilMap:
         hbond_strings = []
         for (dpi, dri, dsi, api, ari, asi), (intraL, interL) in zip(hbinfo[:,:-2].astype(int), hbinfo[:,-2:]):
             # NEED TO ADD ERROR HANDLING FOR CASES IN WHICH IMPROPER SITE IDS WERE USED
-            # Get the involved residues
+            # Get the involved residues 
             donor = self.chains[dpi].residues[dri]
             acceptor = self.chains[api].residues[ari]
             dID = f"{dpi+1}-{donor.resname}-{types[dsi]}"
@@ -1379,6 +1390,26 @@ class FibrilMap:
                 wb_strings.append(f"{ID1:>11}{ID2:>12}{np.round(intraL,3):>10.3f}{np.round(interL,3):>10.3f}")
 
         return "\n".join(wb_strings)
+    
+    def make_distance_indicator(self):
+        '''
+        Add distance indicator to the figure
+        '''
+        # Position will be bottom right. 
+        currentx = self.ax.get_xlim()[1] - self.__legend_1nm - 2* self.__underradius
+        currenty = self.ax.get_ylim()[0] + 2 * self.__underradius
+        safe_width = 0 # Placeholder
+        # Distance Indicator
+        marker_pos = [np.linspace(currentx+(safe_width/2)-self.__legend_1nm/2, currentx+(safe_width/2)+self.__legend_1nm/2, 11), [currenty]*11]
+        self.ax.plot(*marker_pos, ls="-", color="black", solid_capstyle='butt', linewidth=self.__lw, markevery=10, zorder=2)
+        for i, mx in enumerate(marker_pos[0]):
+            if i == 0 or i == 10: # End Caps
+                self.ax.plot([mx, mx], [currenty-self.__lw*2.5, currenty+self.__lw*2.5], ls="-", color="black", solid_capstyle='butt', linewidth=self.__lw, zorder=2)
+            elif i ==5: # Midpoint
+                self.ax.plot([mx, mx], [currenty-self.__lw*2.5, currenty], ls="-", color="black", solid_capstyle='butt', linewidth=self.__lw*0.75, zorder=2)
+            else:
+                self.ax.plot([mx, mx], [currenty-self.__lw*1.5, currenty], ls="-", color="black", solid_capstyle='butt', linewidth=self.__lw*0.75, zorder=2)
+        self.ax.annotate(r"10 $\mathregular{\AA}$", (currentx+(safe_width/2), currenty+1.5), ha="center", va="bottom", fontweight="bold", fontsize=self.__radius, zorder=2)
 
     def make_legend(self):
         '''
