@@ -1237,6 +1237,8 @@ class Params:
                 }}
         elif self.command == "map":
             self.__param_info = {**self.__param_info, **{
+                "flip":[False, _valid_bool],
+                "rotate":[0, _any_float],
                 "p_cutoff":[0.5, _nonnegative_frac],
                 "hbond_n_cutoff":[None, _nonnegative_float],
                 "hbond_p_cutoff":[None, _nonnegative_frac],
@@ -1458,7 +1460,7 @@ class Params:
             "Input": ["trajectory_file","topology_file","checkpoint_file","hb_processed_file","hb_unprocessed_file","sb_processed_file","sb_unprocessed_file","pi_processed_file","pi_unprocessed_file", "wb_processed_file","wb_unprocessed_file", "wb_unprocessed_hbond_file", "map_positions_file"],
             "Output": ["output_directory","nosaveraw","saveraw","verbose","nprocs", "log","nolog","nobackup","backup","figure_file","showfig", "output_log", "output_cpt"],
             "Options": ["n_protofilaments","omit_layers","calctype","hbond_distance_cutoff","hbond_angle_cutoff","saltbridge_selection_mode","saltbridge_anion_charge_cutoff","saltbridge_cation_charge_cutoff","saltbridge_anion_sel","saltbridge_cation_sel","saltbridge_distance_cutoff","pistacking_phe_sel","pistacking_tyr_sel","pistacking_his_sel","pistacking_trp_sel", "waterbridge_max_order"],
-            "Figure Options":["figure_width","figure_height","legend","figure_dpi","transparent_background","numbered_residues", "fontsize"],
+            "Figure Options":["figure_width","figure_height","legend","figure_dpi","transparent_background","numbered_residues", "fontsize", "flip", "rotate"],
             "Regions": ["water_region","zipper_region"],
             "Cutoffs": ["p_cutoff","hbond_n_cutoff","hbond_p_cutoff","saltbridge_p_cutoff","pistacking_p_cutoff","waterbridge_p_cutoff"],
             "Colors": ["acidic_color","acidic_label_color","basic_color","basic_label_color","polar_color","polar_label_color","nonpolar_color","nonpolar_label_color","backbone_color","hbond_color_1","hbond_color_2","saltbridge_color_1","saltbridge_color_2","saltbridge_color_3","pistacking_color_1","pistacking_color_2","waterbridge_color_1","waterbridge_color_2","water_color","water_opacity","zipper_color","zipper_opacity","total_color", "interlayer_color", "intralayer_color"]}

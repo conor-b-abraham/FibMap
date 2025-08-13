@@ -84,7 +84,8 @@ class SystemInfo:
             nres_per_seg = 0
             self.segment_resids = []
             for si in self.structure[0]:
-                self.segment_resids.append(ag.select_atoms(f"segid {si}").residues.resids)
+                segag = ag.select_atoms(f"segid {si}")
+                self.segment_resids.append(segag.residues.resids-segag.residues.resids.min()+1)
                 nres_per_seg += ag.select_atoms(f"segid {si}").residues.n_residues
             self.segment_resids = np.hstack(self.segment_resids)
         self.matched_resids = np.zeros((ag.residues.n_residues, 2), dtype=int).astype(str)

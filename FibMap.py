@@ -418,7 +418,7 @@ def main():
                             default=None,
                             help=f'(OPTIONAL, Default: None, Type: Float >= 0 and <= 1) Individually set the probability cutoff for waterbridges. If not set, p_cutoff will be used.'
                             )
-    map_legend_group = map_output.add_mutually_exclusive_group()
+    map_legend_group = map_options.add_mutually_exclusive_group()
     map_legend_group.add_argument("--legend", 
                                   action="store_true",
                                   help="(OPTIONAL, Default: legend) If used, a legend will be included in the figure."
@@ -427,6 +427,13 @@ def main():
                                   action="store_true",
                                   help="(OPTIONAL, Default: legend) If used, a legend will not be included in the figure."
                                   )
+    map_options.add_argument("--flip", 
+                            action="store_true",
+                            help="(OPTIONAL, Default: False) Flip the fibmap to look at it from the other direction. Does not permenantly change saved positions.")
+    map_options.add_argument("--rotate", 
+                            default=0,
+                            type=float,
+                            help="(OPTIONAL, Default: 0) Rotate fibmap clockwise. Does not permenantly change saved positions.")
     map_options.add_argument("--nprocs", 
                             type=io.ap_cpu_int, # must be -1, -2, or positive integer
                             default=1,

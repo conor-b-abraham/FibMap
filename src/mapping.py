@@ -742,6 +742,26 @@ class FibrilMap:
             Cterm_pos = np.copy(positions["CT"])
             Nterm_pos = np.copy(positions["NT"])
             positions.close()
+        
+        CA_pos_save = [np.copy(CA_pos[i]) for i in range(self.__sysinfo.structure.shape[1])]
+        SC_pos_save = [np.copy(SC_pos[i]) for i in range(self.__sysinfo.structure.shape[1])]
+        Cterm_pos_save = np.copy(Cterm_pos)
+        Nterm_pos_save = np.copy(Nterm_pos)
+        
+        # Perform flip if requested
+        if self.__params.flip:
+            CA_pos = [pos*np.array([1,-1]) for pos in CA_pos]
+            SC_pos = [pos*np.array([1,-1]) for pos in SC_pos]
+            Cterm_pos = Cterm_pos*np.array([1,-1])
+            Nterm_pos = Nterm_pos*np.array([1,-1])
+
+        if self.__params.rotate != 0:
+            sintheta = np.sin(self.__params.rotate)
+            costheta = np.cos(self.__params.rotate)
+            CA_pos = [np.column_stack([pos[:,0]*costheta-pos[:,1]*sintheta, pos[:,0]*sintheta+pos[:,1]*costheta]) for pos in CA_pos]
+            SC_pos = [np.column_stack([pos[:,0]*costheta-pos[:,1]*sintheta, pos[:,0]*sintheta+pos[:,1]*costheta]) for pos in SC_pos]
+            Cterm_pos = np.column_stack([Cterm_pos[:,0]*costheta-Cterm_pos[:,1]*sintheta, Cterm_pos[:,0]*sintheta+Cterm_pos[:,1]*costheta])
+            Nterm_pos = np.column_stack([Nterm_pos[:,0]*costheta-Nterm_pos[:,1]*sintheta, Nterm_pos[:,0]*sintheta+Nterm_pos[:,1]*costheta])
 
         # Adjust figure size and convert position units
         CA_positions, SC_positions, Cterm_positions, Nterm_positions = self._init_figure(CA_pos, SC_pos, Cterm_pos, Nterm_pos)
@@ -800,7 +820,7 @@ class FibrilMap:
                 self.ax.text(residue.ca_position[0], residue.ca_position[1], reslabel, c=residue.labelcolor, va='center_baseline', ha='center', fontweight='bold', zorder=16)
             self.ax.add_collection(PatchCollection(beadpatches, match_original=True, zorder=14))
             self.ax.add_collection(PatchCollection(underbeadpatches, match_original=True, zorder=10))
-        return CA_pos, SC_pos, Cterm_pos, Nterm_pos, mpl.rcParams['font.size']
+        return CA_pos_save, SC_pos_save, Cterm_pos_save, Nterm_pos_save, mpl.rcParams['font.size']
     
     # -------------------------------- SHADED REGIONS --------------------------------
     def _make_region_path(self, region):
