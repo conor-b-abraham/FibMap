@@ -410,6 +410,9 @@ After the intermolecular forces have been computed with the `calc` subcommand, t
 | `--waterbridge_p_cutoff` (0 $\leq$ float $\leq$ 1) | None | Individually set the probability cutoff for waterbridges. If not set, p_cutoff will be used. |
 | `--[no]legend` | legend | If legend, a legend will be included in the figure. |
 | `--nprocs int` (int $\geq$ -2) | 1 | How many processors to use for the position calculation. Use -1 to use all available processors, -2 to use half of the available processors, or some positive integer. |
+| `--flip` | False | Flip the fibmap to look at it from the other direction. Does not permenantly change saved positions. |
+| `--rotate float` | 0 | Rotate fibmap clockwise. Does not permenantly change saved positions. |
+
 </details>
 
 #### Additional Help ####
@@ -504,6 +507,8 @@ figure_height          = # Height of Figure in inches
 figure_dpi             = # Figure resolution in dots per inch (dpi)
 transparent_background = # [True/False] Make background transparent
 numbered_residues      = # [True/False] Number the residues instead of labelling with 1-letter name abbreviations
+flip                   = # Flip FibMap to view from bottom
+rotate                 = # Rotate Fibmap clockwise
 
 # Colors
 acidic_color           = # Color of acidic residues
